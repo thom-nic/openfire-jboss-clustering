@@ -1,0 +1,123 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.enernoc.rnd.openfire.cluster</groupId>
+	<artifactId>openfire-cluster</artifactId>
+	<packaging>openfire-plugin</packaging>
+	<version>1.0-SNAPSHOT</version>
+	<name>openfire-cluster</name>
+	<description>Openfire clustering plugin based on JBoss JGroups</description>
+	<url>http://wiki.rnd.enernoc.net/Openfire_Clustering</url>
+	<developers>
+		<developer>
+			<name>Thomas Nichols</name>
+			<email>tnichols@enernoc.com</email>
+			<roles><role>Developer</role></roles>
+		</developer>
+	</developers>
+	<organization>
+		<name>EnerNOC, Inc.</name>
+		<url>http://www.enernoc.com/</url>
+	</organization>
+	<licenses>
+		<license>
+			<name>GPL v3</name>
+			<url>http://www.gnu.org/copyleft/gpl.html</url>
+		</license>
+	</licenses>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>com.reucon.maven.plugins</groupId>
+				<artifactId>maven-openfire-plugin</artifactId>
+				<extensions>true</extensions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.groovy.maven</groupId>
+				<artifactId>gmaven-plugin</artifactId>
+				<executions><!-- 
+					<execution>
+						<id>Start.Zookeeper</id>
+						<phase>test-compile</phase>
+						<goals>
+							<goal>execute</goal>
+						</goals>
+						<configuration>
+							<source>${pom.basedir}/src/test/script/StartZk.groovy</source>
+						</configuration>
+					</execution> -->
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.5</source>
+					<target>1.5</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.igniterealtime.openfire</groupId>
+			<artifactId>openfire</artifactId>
+			<version>3.6.4</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.cache</groupId>
+			<artifactId>jbosscache-core</artifactId>
+			<version>3.1.0.GA</version>
+		</dependency>
+		<dependency>
+			<groupId>jgroups</groupId>
+			<artifactId>jgroups</artifactId>
+			<version>2.7.0.GA</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-jcl</artifactId>
+			<version>1.5.6</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.sun.jdmk</groupId>
+					<artifactId>jmxtools</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.sun.jmx</groupId>
+					<artifactId>jmxri</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.jms</groupId>
+					<artifactId>jms</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.mail</groupId>
+					<artifactId>mail</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.codehaus.groovy</groupId>
+			<artifactId>groovy</artifactId>
+			<version>[1.6,)</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.4</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+	
+	<repositories>
+		<repository>
+			<id>JBoss</id>
+			<url>http://repository.jboss.com/maven2/</url>
+		</repository>
+	</repositories>
+</project>

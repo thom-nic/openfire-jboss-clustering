@@ -1,0 +1,25 @@
+<plugin>
+  <!-- Main plugin class -->
+  <class>com.enernoc.rnd.openfire.cluster.JBossClusterPlugin</class>
+
+  <!-- Plugin meta-data -->
+  <name>${pom.name}</name>
+  <description>${pom.description}</description>
+  <author>${pom.organization.name}</author>
+  <version>${pom.version}</version>
+  <date>${openfire-plugin.build.date}</date>
+  <minServerVersion>3.4.0</minServerVersion>
+  <licenseType>GPL</licenseType>
+
+  <!-- Admin console meta-data -->
+  <adminconsole>
+  	<!-- 
+		<tab id='server' >
+			<sidevar id='' >
+				<item id='jboss-clustering' name='JBoss Clustering Admin' url='system-clustering.jsp' 
+					description='Click to enable clustering in Openfire' />
+			</sidevar>
+		</tab>
+		 -->
+  </adminconsole>
+</plugin>

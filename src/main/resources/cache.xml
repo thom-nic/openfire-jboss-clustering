@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jbosscache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="urn:jboss:jbosscache-core:config:3.1">
+
+	<!-- http://www.jboss.org/file-access/default/members/jbosscache/freezone/docs/3.0.3.GA/userguide_en/html/configuration.html#d0e835 -->
+	<clustering clusterName='OpenFire-Cache' />
+</jbosscache>
