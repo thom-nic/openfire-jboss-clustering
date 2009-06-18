@@ -75,7 +75,7 @@ public class ExternalUtilStrategy implements ExternalizableUtilStrategy {
 	public void writeExternalizableMap(DataOutput out,
 			Map<String, ? extends Externalizable> map) throws IOException {
 		out.writeInt(map.size());
-		for(String key:map.keySet()) {
+		for( String key : map.keySet() ) {
 			out.writeUTF(key);
 			out.writeUTF(map.get(key).getClass().getCanonicalName());
 			map.get(key).writeExternal((ObjectOutput)out);

@@ -8,11 +8,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
 
 import org.jboss.cache.Cache;
 import org.jboss.cache.CacheFactory;
 import org.jboss.cache.DefaultCacheFactory;
 import org.jboss.cache.Fqn;
+import org.jboss.cache.interceptors.base.CommandInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,9 +59,8 @@ public class JBossCache<K,V> implements org.jivesoftware.util.cache.Cache<K,V> {
 				key.getClass().getCanonicalName() + "@" + key.hashCode() );
 	}
 	
-	public getLock( Object key ) {
-		Fqn<String> k = getKey( key );
-		//cache.getNode(k).  TODO
+	public Lock getLock( Object key ) {
+		return new JBossCacheLock( this.cache, getKey( key ) );
 	}
 	
 	@Override
@@ -185,7 +186,7 @@ public class JBossCache<K,V> implements org.jivesoftware.util.cache.Cache<K,V> {
 
 	@Override
 	public String getName() {
-		return this.baseName.toString();
+		return this.baseName.getLastElementAsString();
 	}
 
 	@Override

@@ -2,7 +2,10 @@ package com.enernoc.rnd.openfire.cluster;
 
 import java.io.File;
 import java.net.URL;
+import java.util.Enumeration;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
 
 import org.jgroups.Address;
 import org.jgroups.Channel;
@@ -41,7 +44,10 @@ public class JBossClusterPlugin implements Plugin, ClusterEventListener {
 	}
 
 	@Override
-	public void initializePlugin( PluginManager mgr, File pluginDir ) { 
+	public void initializePlugin( PluginManager mgr, File pluginDir ) {
+		LogManager.getLogManager().getLogger("").setLevel(Level.FINE);
+		Enumeration<String> es = LogManager.getLogManager().getLoggerNames();
+		while ( es.hasMoreElements() ) log.error( es.nextElement() );
 		try {
 			String clusterConfig = JiveGlobals.getProperty( CLUSTER_JGROUPS_CONFIG_PROPERTY );
 			URL config = clusterConfig != null ? new URL( clusterConfig ) : 
@@ -50,12 +56,13 @@ public class JBossClusterPlugin implements Plugin, ClusterEventListener {
 			this.jgroups = channelFactory.createChannel();
 			masterWatcher = new ClusterMasterWatcher( this.jgroups );
 			jgroups.connect( "OpenFire-Cluster" ); // TODO make configurable
-			jgroups.getState( null, 20000 ); /// get initial distributed state.
+//			jgroups.getState( null, 20000 ); /// get initial distributed state.
 			
-			while ( this.getLocalAddress() == null ) {
+			while ( this.getClusterNodes().size() < 1 ) {
 				log.info( "Waiting for initial view..." );
 				Thread.sleep( 1000 );
 			}
+			log.info( "Local address: {}", this.getLocalAddress() );
 		}
 		catch ( Exception ex ) {
 			throw new ClusterException( "Unexpected error", ex );
@@ -79,6 +86,7 @@ public class JBossClusterPlugin implements Plugin, ClusterEventListener {
 		ClusterManager.setClusteringEnabled(true); // calls startup() automatically
 //		ClusterManager.startup(); // which in turn calls cacheFactory.startClustering() automatically
 //		CacheFactory.startClustering();
+		masterWatcher.enable();
 	}
 
 	/**

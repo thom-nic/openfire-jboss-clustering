@@ -29,6 +29,7 @@ import org.jivesoftware.openfire.container.Plugin;
 import org.jivesoftware.util.JiveGlobals;
 import org.jivesoftware.util.cache.Cache;
 import org.jivesoftware.util.cache.CacheFactoryStrategy;
+import org.jivesoftware.util.cache.CacheWrapper;
 import org.jivesoftware.util.cache.ClusterTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,7 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 
 	protected final Logger log = LoggerFactory.getLogger(getClass());
 	
+	// TODO replace with CacheManager?
 	CacheFactory factory = new DefaultCacheFactory();
 	org.jboss.cache.Cache cache;
 	
@@ -63,7 +65,6 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 				break;
 			}
 		}
-
 		
 		try {
 			String cacheConfig = JiveGlobals.getProperty( JBossClusterPlugin.CLUSTER_CACHE_CONFIG_PROPERTY );
@@ -108,13 +109,16 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 	@Override @SuppressWarnings("unchecked")
 	public void destroyCache(Cache cache) {
 		log.info( "Destroying cache '{}'", cache.getName() );
+		if ( cache instanceof CacheWrapper )
+			cache = ((CacheWrapper)cache).getWrappedCache();
 		((JBossCache)cache).shutdown();
 	}
 
 	@Override @SuppressWarnings("unchecked")
 	public Lock getLock(Object key, Cache cache) {
-		// TODO Auto-generated method stub
-		return null;
+		if ( cache instanceof CacheWrapper )
+			cache = ((CacheWrapper)cache).getWrappedCache();
+		return ((JBossCache)cache).getLock(key);
 	}
 
 	@Override @SuppressWarnings("unchecked")
