@@ -22,6 +22,8 @@ import org.jivesoftware.util.cache.ExternalizableUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.enernoc.rnd.openfire.cluster.session.ClusteredSessionLocator;
+
 public class JBossClusterPlugin implements Plugin, ClusterEventListener {
 
 	protected final Logger log = LoggerFactory.getLogger( getClass() );
@@ -50,7 +52,7 @@ public class JBossClusterPlugin implements Plugin, ClusterEventListener {
 		while ( es.hasMoreElements() ) log.error( es.nextElement() );
 		try {
 			String clusterConfig = JiveGlobals.getProperty( CLUSTER_JGROUPS_CONFIG_PROPERTY );
-			URL config = clusterConfig != null ? new URL( clusterConfig ) : 
+			URL config = clusterConfig != null ? getClass().getResource( clusterConfig ) : 
 				getClass().getResource("/fast-local.xml");
 			channelFactory = new JChannelFactory( config );
 			this.jgroups = channelFactory.createChannel();
@@ -77,14 +79,15 @@ public class JBossClusterPlugin implements Plugin, ClusterEventListener {
 /*		JiveGlobals.setProperty(
 				CacheFactory.CLUSTERED_CACHE_PROPERTY_NAME,
         	"com.enernoc.rnd.openfire.cluster.cache.ClusteredCacheFactory");
-*/		ExternalizableUtil.getInstance().setStrategy( new ExternalUtilStrategy() );
+*/		ExternalizableUtil.getInstance().setStrategy( new ExternalUtil() );
 		XMPPServer.getInstance().getRoutingTable().setRemotePacketRouter( new ClusterPacketRouter() );
 		XMPPServer.getInstance().setRemoteSessionLocator( new ClusteredSessionLocator() );
 		
 		XMPPServer.getInstance().setNodeID( NodeID.getInstance( masterWatcher.getLocalAddress().toString().getBytes() ) );		
 		
-		ClusterManager.setClusteringEnabled(true); // calls startup() automatically
-//		ClusterManager.startup(); // which in turn calls cacheFactory.startClustering() automatically
+		if ( ! ClusterManager.isClusteringEnabled() )
+			ClusterManager.setClusteringEnabled(true); // calls startup() automatically
+		else ClusterManager.startup(); // which in turn calls cacheFactory.startClustering() automatically
 //		CacheFactory.startClustering();
 		masterWatcher.enable();
 	}

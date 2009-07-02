@@ -39,7 +39,7 @@ public class ClusterMasterWatcher implements ClusterEventListener, Receiver {
 	
 	@Override
 	public void viewAccepted(View v) {
-		log.debug( "View accepted: {}", v );
+		log.info( "View accepted: {}", v );
 		if ( this.myAddr == null ) myAddr = channel.getLocalAddress();
 		Vector<Address> newNodes = v.getMembers();
 		Map<String,JGroupsClusterNodeInfo> nodeMap = new HashMap<String,JGroupsClusterNodeInfo>(newNodes.size());

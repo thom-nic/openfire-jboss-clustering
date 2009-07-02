@@ -11,12 +11,12 @@ import com.enernoc.rnd.openfire.cluster.task.PacketRouterTask;
 
 public class ClusterPacketRouter implements RemotePacketRouter {
 
-	public void broadcastPacket(Message packet) {
+	public void broadcastPacket( Message packet ) {
 		CacheFactory.doClusterTask( new BroadcastTask(packet) );
 	}
 
-	public boolean routePacket(byte[] nodeID, JID receipient, Packet packet) {
-		CacheFactory.doClusterTask( new PacketRouterTask(receipient, packet), nodeID );
+	public boolean routePacket( byte[] nodeID, JID receipient, Packet packet ) {
+		CacheFactory.doClusterTask( new PacketRouterTask(packet), nodeID );
 		return true;
-	}
+	}	
 }

@@ -101,6 +101,12 @@
 		</dependency>
 		
 		<dependency>
+	    <groupId>jivesoftware</groupId>
+	    <artifactId>smack</artifactId>
+	    <version>3.0.4</version>
+	    <scope>test</scope>
+		</dependency> 
+		<dependency>
 			<groupId>org.codehaus.groovy</groupId>
 			<artifactId>groovy</artifactId>
 			<version>[1.6,)</version>

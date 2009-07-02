@@ -14,7 +14,6 @@ import org.jboss.cache.Cache;
 import org.jboss.cache.CacheFactory;
 import org.jboss.cache.DefaultCacheFactory;
 import org.jboss.cache.Fqn;
-import org.jboss.cache.interceptors.base.CommandInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,6 +72,7 @@ public class JBossCache<K,V> implements org.jivesoftware.util.cache.Cache<K,V> {
 	
 	@Override
 	public boolean containsKey( Object key ) {
+		log.debug( "Cache '{}' contains: {}", getName(), key );
 		return cache.getNode( getKey(key) ) != null;
 	}
 
@@ -112,12 +112,13 @@ public class JBossCache<K,V> implements org.jivesoftware.util.cache.Cache<K,V> {
 
 	@Override
 	public V put(K key, V val) {
+		log.debug( "Cache '{}'  put: {}", new Object[] {getName(), key, val} );
 		cache.put( getKey(key), key, val );
 		return val;
 	}
 
 	@Override
-	public void putAll(Map<? extends K, ? extends V> map) {
+	public void putAll( Map<? extends K, ? extends V> map ) {
 		cache.startBatch();
 		try {
 			for ( K key : map.keySet() ) put( key, map.get(key) );
@@ -146,6 +147,7 @@ public class JBossCache<K,V> implements org.jivesoftware.util.cache.Cache<K,V> {
 
 	@Override
 	public V get(Object key) {
+		log.debug( "  Cache '{}' get: {}", getName(), key );
 		V val = cache.get( getKey(key), (K)key );
 		if ( val != null ) this.hits ++ ; else this.misses ++ ; 
 		return val; 
@@ -153,6 +155,7 @@ public class JBossCache<K,V> implements org.jivesoftware.util.cache.Cache<K,V> {
 
 	@Override
 	public V remove(Object key) {
+		log.debug( "  Cache '{}' remove: {}", getName(), key );
 		Fqn<String> fqn = getKey(key);
 		V val = cache.remove( fqn, (K)key );
 		cache.removeNode(fqn);
@@ -176,7 +179,7 @@ public class JBossCache<K,V> implements org.jivesoftware.util.cache.Cache<K,V> {
 
 	@Override
 	public long getMaxCacheSize() {
-		return Long.MAX_VALUE;
+		return -1;
 	}
 
 	@Override

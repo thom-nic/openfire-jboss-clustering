@@ -3,8 +3,10 @@
             xmlns="urn:jboss:jbosscache-core:config:3.1">
 
 	<!-- http://www.jboss.org/file-access/default/members/jbosscache/freezone/docs/3.0.3.GA/userguide_en/html/configuration_reference_chapter.html#sample_xml_file -->
-	<clustering  mode="invalidation" clusterName='OpenFire-Cache'>
-		<jgroupsConfig configFile="jgroups-cache-local.xml" />
+	<clustering  mode="replication" clusterName='OpenFire-Cache'>
+		<sync replTimeout='2000' />
+		<stateRetrieval fetchInMemoryState='true' />
+		<jgroupsConfig configFile="udp2.xml" />
 	</clustering>
 	
 	<locking isolationLevel="REPEATABLE_READ"

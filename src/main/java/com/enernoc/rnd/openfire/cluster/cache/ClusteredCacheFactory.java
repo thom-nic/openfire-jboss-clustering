@@ -111,6 +111,7 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 		log.info( "Destroying cache '{}'", cache.getName() );
 		if ( cache instanceof CacheWrapper )
 			cache = ((CacheWrapper)cache).getWrappedCache();
+		if ( ! ( cache instanceof JBossCache ) ) return;
 		((JBossCache)cache).shutdown();
 	}
 
@@ -118,6 +119,10 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 	public Lock getLock(Object key, Cache cache) {
 		if ( cache instanceof CacheWrapper )
 			cache = ((CacheWrapper)cache).getWrappedCache();
+		if ( ! ( cache instanceof JBossCache ) ) 
+			cache = this.createCache( cache.getName() );
+		
+		log.debug( "Creating lock for {} on cache {}", key, cache.getName() );
 		return ((JBossCache)cache).getLock(key);
 	}
 
@@ -230,7 +235,7 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 	@Override
 	public int getMaxClusterNodes() {
 		// TODO Auto-generated method stub
-		return Integer.MAX_VALUE;
+		return 100;
 	}
 
 	@Override

@@ -7,7 +7,7 @@
 -->
 
 <config>
-    <UDP
+    <UDP bind_addr="${bind.address:172.16.11.205}"
          mcast_addr="${jgroups.udp.mcast_addr:232.10.10.10}"
          mcast_port="${jgroups.udp.mcast_port:45588}"
          tos="8"
@@ -44,8 +44,10 @@
             num_initial_members="3"/>
     <MERGE2 max_interval="30000"
             min_interval="10000"/>
-    <FD_SOCK/>
-    <FD_ALL/>
+    <!-- <FD_SOCK/>
+    <FD_ALL/> -->
+    <FD_SIMPLE timeout="5000"
+    				max_missed_hbs="10"/>
     <VERIFY_SUSPECT timeout="1500"  />
     <BARRIER />
     <pbcast.NAKACK use_stats_for_retransmission="false"
