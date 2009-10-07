@@ -56,7 +56,6 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 	 * This is called by the {@link ClusterManager}, when 
 	 * {@link JBossClusterPlugin}.initializePlugin() is executed.
 	 */
-	@Override
 	public boolean startCluster() {
 		log.info( "Cluster starting..." );
 		for ( Plugin p : XMPPServer.getInstance().getPluginManager().getPlugins() ) {
@@ -89,13 +88,12 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 		}
 	}
 
-	@Override
 	public void stopCluster() {
 		log.info( "Cluster stopping..." );
 		// TODO should this tell the clusterPlugin to shutdown other services?
 	}
 
-	@Override @SuppressWarnings("unchecked")
+	@SuppressWarnings("unchecked")
 	public Cache createCache(String name) {
 		log.info( "Creating cache '{}'", name );
 		try {
@@ -106,7 +104,7 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 		}
 	}
 
-	@Override @SuppressWarnings("unchecked")
+	@SuppressWarnings("unchecked")
 	public void destroyCache(Cache cache) {
 		log.info( "Destroying cache '{}'", cache.getName() );
 		if ( cache instanceof CacheWrapper )
@@ -115,7 +113,7 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 		((JBossCache)cache).shutdown();
 	}
 
-	@Override @SuppressWarnings("unchecked")
+	@SuppressWarnings("unchecked")
 	public Lock getLock(Object key, Cache cache) {
 		if ( cache instanceof CacheWrapper )
 			cache = ((CacheWrapper)cache).getWrappedCache();
@@ -126,12 +124,12 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 		return ((JBossCache)cache).getLock(key);
 	}
 
-	@Override @SuppressWarnings("unchecked")
+	@SuppressWarnings("unchecked")
 	public void updateCacheStats( Map<String,Cache> caches ) {
 		// TODO Auto-generated method stub	
 	}
 	
-	@Override
+	
 	public void doClusterTask( ClusterTask task ) {
 		log.debug( "Cluster task {}", task );
 		Collection<JGroupsClusterNodeInfo> nodes = cluster.getClusterNodes().values();
@@ -159,7 +157,6 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 		}
 	}
 
-	@Override
 	public boolean doClusterTask( ClusterTask task, byte[] nodeID ) {
 		log.debug( "Cluster task {}", task );
 		Message msg = new Message();
@@ -177,7 +174,6 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 		}
 	}
 
-	@Override
 	public Collection<Object> doSynchronousClusterTask( ClusterTask task,
 			boolean includeLocal ) {
 		log.debug( "Sync Cluster task {}", task );
@@ -204,7 +200,7 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 		}
 	}
 
-	@Override
+	
 	public Object doSynchronousClusterTask( ClusterTask task, byte[] nodeID ) {
 		log.debug( "Sync Cluster task {}", task );
 		Message msg = new Message();
@@ -222,23 +218,23 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 		}
 	}
 
-	@Override
+	
 	public byte[] getClusterMemberID() {
 		return XMPPServer.getInstance().getNodeID().toByteArray();
 	}
 
-	@Override @SuppressWarnings("unchecked")
+	 @SuppressWarnings("unchecked")
 	public Collection<ClusterNodeInfo> getClusterNodesInfo() {
 		return (Collection)this.cluster.getClusterNodes().values();
 	}
 
-	@Override
+	
 	public int getMaxClusterNodes() {
 		// TODO Auto-generated method stub
 		return 100;
 	}
 
-	@Override
+	
 	public byte[] getSeniorClusterMemberID() {
 		for ( ClusterNodeInfo node : getClusterNodesInfo() ) {
 			if ( node.isSeniorMember() ) return node.getNodeID().toByteArray();
@@ -246,7 +242,7 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 		throw new ClusterException( "Couldn't find master node in cluster info list!" );
 	}
 
-	@Override
+	
 	public boolean isSeniorClusterMember() {
 		ClusterNodeInfo localNode = this.cluster.getClusterNodes().get( 
 				this.cluster.getLocalAddress().toString() ); 
