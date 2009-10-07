@@ -72,8 +72,16 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 
 			
 			InputStream cfgStream = cacheConfigURL.openStream();
-			try { this.cache = factory.createCache(cfgStream, true); }
-			finally { try { cfgStream.close(); } catch ( IOException ex ) {} }		
+			try {
+				this.cache = factory.createCache(cfgStream, true);
+			} catch (Exception e) {
+				log.error("Exception creating the cache, clustering not started", e);
+				throw e;
+			} finally {
+				try {
+					cfgStream.close();
+				} catch (IOException ex) {}
+			}		
 
 			
 			dispatcher = new MessageDispatcher( cluster.getChannel(), null, null, true );
