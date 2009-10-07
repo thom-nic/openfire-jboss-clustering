@@ -3,8 +3,8 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.enernoc.rnd.openfire.cluster</groupId>
 	<artifactId>openfire-cluster</artifactId>
-	<packaging>openfire-plugin</packaging>
 	<version>1.0-SNAPSHOT</version>
+	<packaging>openfire-plugin</packaging>
 	<name>openfire-cluster</name>
 	<description>Openfire clustering plugin based on JBoss JGroups</description>
 	<url>http://wiki.rnd.enernoc.net/Openfire_Clustering</url>
@@ -28,10 +28,13 @@
 
 	<build>
 		<plugins>
-			<plugin>
+	        <plugin>
 				<groupId>com.reucon.maven.plugins</groupId>
 				<artifactId>maven-openfire-plugin</artifactId>
 				<extensions>true</extensions>
+				<configuration>
+                  <warName>clustering</warName>
+                </configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.groovy.maven</groupId>
