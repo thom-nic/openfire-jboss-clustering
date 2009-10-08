@@ -54,12 +54,10 @@ public class ClusterIncomingSession extends ClusterSession implements
 		return new GetIncomingSessionTask( this.streamID );
 	}
 
-	@Override
 	public String getLocalDomain() {
 		return this.localDomain;
 	}
 
-	@Override
 	public Collection<String> getValidatedDomains() {
 		super.checkUpdate();
 		return this.validDomains;
