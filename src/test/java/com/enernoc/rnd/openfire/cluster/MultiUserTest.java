@@ -133,14 +133,12 @@ public class MultiUserTest {
 		
 		public Queue<String> getMessages() { return this.messageQueue; }
 
-		@Override
 		public void processPacket( Packet p ) {
 			String body = ((Message)p).getBody();
 			System.out.println( "Got message! : " + body );
 			this.messageQueue.add( body );
 		}
 
-		@Override
 		public boolean accept( Packet p ) {
 			return p instanceof Message;
 		}

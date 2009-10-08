@@ -56,14 +56,12 @@ public class JBossCacheTest {
 			this.name = n; this.count = c;
 		}
 
-		@Override
 		public void readExternal(ObjectInput in) throws IOException,
 				ClassNotFoundException {
 			this.name = in.readUTF();
 			this.count = in.readInt();
 		}
 
-		@Override
 		public void writeExternal(ObjectOutput out) throws IOException {
 			out.writeUTF( name );
 			out.writeInt( count );
