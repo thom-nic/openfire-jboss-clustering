@@ -38,14 +38,14 @@ public class JBossClusterPlugin implements Plugin, ClusterEventListener {
 	
 	ClusterMasterWatcher masterWatcher;
 	
-	@Override
+	
 	public void destroyPlugin() {
 		CacheFactory.stopClustering();
 		ClusterManager.shutdown();
 		// TODO interrupt master listener & node listener?
 	}
 
-	@Override
+	
 	public void initializePlugin( PluginManager mgr, File pluginDir ) {
 		LogManager.getLogManager().getLogger("").setLevel(Level.FINE);
 		Enumeration<String> es = LogManager.getLogManager().getLoggerNames();
@@ -53,7 +53,7 @@ public class JBossClusterPlugin implements Plugin, ClusterEventListener {
 		try {
 			String clusterConfig = JiveGlobals.getProperty( CLUSTER_JGROUPS_CONFIG_PROPERTY );
 			URL config = clusterConfig != null ? getClass().getResource( clusterConfig ) : 
-				getClass().getResource("/fast-local.xml");
+				getClass().getResource("/udp.xml");
 			channelFactory = new JChannelFactory( config );
 			this.jgroups = channelFactory.createChannel();
 			masterWatcher = new ClusterMasterWatcher( this.jgroups );
@@ -112,27 +112,27 @@ public class JBossClusterPlugin implements Plugin, ClusterEventListener {
 		return this.jgroups;
 	}
 	
-	@Override
+	
 	public void joinedCluster() {
 		log.info( "This node ({}) has JOINED the cluster.", getLocalAddress() );
 	}
 
-	@Override
+	
 	public void joinedCluster(byte[] nodeID) {
 		log.info( "Node {} has JOINED the cluster.", nodeID );
 	}
 
-	@Override
+	
 	public void leftCluster() {
 		log.info( "This node ({}) has LEFT the cluster.", getLocalAddress() );
 	}
 
-	@Override
+	
 	public void leftCluster(byte[] nodeID) {
 		log.info( "Node {} has LEFT the cluster.", nodeID );
 	}
 
-	@Override
+	
 	public void markedAsSeniorClusterMember() {
 		log.info( "This node ({}) has been marked as MASTER.", getLocalAddress() );
 	}

@@ -40,7 +40,7 @@ public class JGroupsClusterNodeInfo implements ClusterNodeInfo, Externalizable {
 		this.joinedTime = time;
 	}	
 
-	@Override
+	
 	public void readExternal(ObjectInput in) throws IOException,
 			ClassNotFoundException {
 		this.address = (Address)in.readObject();
@@ -49,20 +49,20 @@ public class JGroupsClusterNodeInfo implements ClusterNodeInfo, Externalizable {
 		this.nodeID = NodeID.getInstance(this.hostName.getBytes());
 	}
 
-	@Override
+	
 	public void writeExternal(ObjectOutput out) throws IOException {
 		this.address.writeExternal(out); // TODO NPE check
 		out.writeUTF(hostName);
 		out.writeLong(joinedTime);
 	}
 	
-	@Override
+	
 	public boolean equals(Object obj) {
 		return obj instanceof ClusterNodeInfo && 
 		this.nodeID.equals( ((ClusterNodeInfo)obj).getNodeID() );
 	}
 	
-	@Override
+	
 	public int hashCode() {
 		return this.nodeID.hashCode();
 	}
@@ -71,22 +71,22 @@ public class JGroupsClusterNodeInfo implements ClusterNodeInfo, Externalizable {
 		this.senior = senior;
 	}
 
-	@Override
+	
 	public String getHostName() {
 		return this.hostName;
 	}
 
-	@Override
+	
 	public long getJoinedTime() {
 		return this.joinedTime;
 	}
 
-	@Override
+	
 	public NodeID getNodeID() {
 		return this.nodeID;
 	}
 
-	@Override
+	
 	public boolean isSeniorMember() {
 		return this.senior;
 	}

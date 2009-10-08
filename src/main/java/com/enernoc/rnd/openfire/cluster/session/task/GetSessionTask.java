@@ -21,7 +21,6 @@ public abstract class GetSessionTask<S extends ClusterSession> implements Cluste
 	public GetSessionTask() {}
 	public GetSessionTask( JID address ) { this.jid = address; }
 
-	@Override
 	public S getResult() {
 		return this.session;
 	}
@@ -30,13 +29,11 @@ public abstract class GetSessionTask<S extends ClusterSession> implements Cluste
 	
 	protected abstract Session getLocalSession();
 	
-	@Override
 	public void run() {
 		this.session = newSession();
 		session.copy( getLocalSession() );
 	}
 
-	@Override
 	public void readExternal(ObjectInput in) throws IOException,
 			ClassNotFoundException {
 		this.jid = new JID();
@@ -46,7 +43,6 @@ public abstract class GetSessionTask<S extends ClusterSession> implements Cluste
 		session.readExternal(in);
 	}
 
-	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
 		jid.writeExternal(out);
 		out.writeBoolean( session == null );

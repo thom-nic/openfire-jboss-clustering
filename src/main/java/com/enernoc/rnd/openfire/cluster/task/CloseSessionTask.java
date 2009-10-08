@@ -16,24 +16,24 @@ public class CloseSessionTask implements ClusterTask {
 		this.address = jid;
 	}
 	
-	@Override
+	
 	public Void getResult() {
 		return null;
 	}
 
-	@Override
+	
 	public void run() {
 		XMPPServer.getInstance().getSessionManager().getSession(
 				this.address ).close();
 	}
 
-	@Override
+	
 	public void readExternal(ObjectInput in) throws IOException,
 			ClassNotFoundException {
 		address.readExternal(in);
 	}
 
-	@Override
+	
 	public void writeExternal(ObjectOutput out) throws IOException {
 		address.writeExternal(out);
 	}

@@ -13,7 +13,7 @@ public class BroadcastTask extends PacketTask<Message> {
 	public BroadcastTask() {}
 	public BroadcastTask( Message msg ) { super(msg); }
 
-	@Override public void run() {
+	public void run() {
 		XMPPServer.getInstance().getRoutingTable().broadcastPacket( packet, true );
 	}
 

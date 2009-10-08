@@ -52,37 +52,37 @@ public class ClusterOutgoingSession extends ClusterSession implements OutgoingSe
 		return new GetOutgoingSessionTask(this.address);
 	}
 
-	@Override
+	
 	public void addAuthenticatedDomain(String domain) {
 		// TODO Auto-generated method stub
 		
 	}
 
-	@Override
+	
 	public void addHostname(String host) {
 		// TODO Auto-generated method stub
 		
 	}
 
-	@Override
+	
 	public boolean authenticateSubdomain(String domain, String host) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
-	@Override
+	
 	public Collection<String> getAuthenticatedDomains() {
 		super.checkUpdate();
 		return this.authenticatedDomains;
 	}
 
-	@Override
+	
 	public Collection<String> getHostnames() {
 		super.checkUpdate();
 		return this.hostnames;
 	}
 
-	@Override
+	
 	public boolean isUsingServerDialback() {
 		return this.usingDialback;
 	}

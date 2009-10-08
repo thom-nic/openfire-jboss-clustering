@@ -25,7 +25,6 @@ public class ComponentTask extends PacketTask<Packet> {
 		return null;
 	}
 
-	@Override
 	public void run() {
 		switch ( this.op ) {
 		case PROCESS :

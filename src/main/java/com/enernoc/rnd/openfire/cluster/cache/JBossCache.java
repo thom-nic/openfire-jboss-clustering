@@ -62,7 +62,7 @@ public class JBossCache<K,V> implements org.jivesoftware.util.cache.Cache<K,V> {
 		return new JBossCacheLock( this.cache, getKey( key ) );
 	}
 	
-	@Override
+	
 	public void clear() {
 		for ( Object node : cache.getChildrenNames( this.baseName ) )
 			cache.removeNode( Fqn.fromRelativeElements(baseName, node) );
@@ -70,13 +70,13 @@ public class JBossCache<K,V> implements org.jivesoftware.util.cache.Cache<K,V> {
 
 	
 	
-	@Override
+	
 	public boolean containsKey( Object key ) {
 		log.debug( "Cache '{}' contains: {}", getName(), key );
 		return cache.getNode( getKey(key) ) != null;
 	}
 
-	@Override
+	
 	public boolean containsValue(Object val) {
 		for ( V v : this.values() ) // TODO performance 
 			if (v.equals( val ) ) return true;
@@ -86,7 +86,7 @@ public class JBossCache<K,V> implements org.jivesoftware.util.cache.Cache<K,V> {
 	/* TODO this should return a view that lazily retrieves items as they are accessed?
 	 * 
 	 */
-	@Override
+	
 	public Set<Entry<K,V>> entrySet() {		
 //		if ( true ) throw new UnsupportedOperationException();
 		Map<K,V> entries = new HashMap<K,V>();
@@ -95,12 +95,12 @@ public class JBossCache<K,V> implements org.jivesoftware.util.cache.Cache<K,V> {
 		return entries.entrySet();
 	}
 	
-	@Override
+	
 	public boolean isEmpty() {
 		return cache.getChildrenNames( this.baseName ).size() < 1;
 	}
 
-	@Override
+	
 	public Set<K> keySet() {
 //		if ( true ) throw new UnsupportedOperationException();
 		Set<K> keys = new HashSet<K>();
@@ -110,14 +110,14 @@ public class JBossCache<K,V> implements org.jivesoftware.util.cache.Cache<K,V> {
 		return keys;
 	}
 
-	@Override
+	
 	public V put(K key, V val) {
 		log.debug( "Cache '{}'  put: {}", new Object[] {getName(), key, val} );
 		cache.put( getKey(key), key, val );
 		return val;
 	}
 
-	@Override
+	
 	public void putAll( Map<? extends K, ? extends V> map ) {
 		cache.startBatch();
 		try {
@@ -130,12 +130,12 @@ public class JBossCache<K,V> implements org.jivesoftware.util.cache.Cache<K,V> {
 		}
 	}
 
-	@Override
+	
 	public int size() {
 		return cache.getChildrenNames( this.baseName ).size();
 	}
 
-	@Override
+	
 	public Collection<V> values() {
 //		if ( true ) throw new UnsupportedOperationException();
 		List<V> vals = new ArrayList<V>();
@@ -145,7 +145,7 @@ public class JBossCache<K,V> implements org.jivesoftware.util.cache.Cache<K,V> {
 		return vals;
 	}
 
-	@Override
+	
 	public V get(Object key) {
 		log.debug( "  Cache '{}' get: {}", getName(), key );
 		V val = cache.get( getKey(key), (K)key );
@@ -153,7 +153,7 @@ public class JBossCache<K,V> implements org.jivesoftware.util.cache.Cache<K,V> {
 		return val; 
 	}
 
-	@Override
+	
 	public V remove(Object key) {
 		log.debug( "  Cache '{}' remove: {}", getName(), key );
 		Fqn<String> fqn = getKey(key);
@@ -162,48 +162,48 @@ public class JBossCache<K,V> implements org.jivesoftware.util.cache.Cache<K,V> {
 		return val;
 	}
 
-	@Override
+	
 	public long getCacheHits() {
 		return this.hits;
 	}
 
-	@Override
+	
 	public long getCacheMisses() {
 		return this.misses;
 	}
 
-	@Override
+	
 	public int getCacheSize() {
 		return Integer.MAX_VALUE;
 	}
 
-	@Override
+	
 	public long getMaxCacheSize() {
 		return -1;
 	}
 
-	@Override
+	
 	public long getMaxLifetime() {
 		return this.ttl;
 	}
 
-	@Override
+	
 	public String getName() {
 		return this.baseName.getLastElementAsString();
 	}
 
-	@Override
+	
 	public void setMaxCacheSize(int arg0) {
 		// TODO adjust eviction policy
 	}
 
-	@Override
+	
 	public void setMaxLifetime( long ttl ) {
 		// TODO adjust eviction policy
 		this.ttl = ttl;
 	}
 
-	@Override
+	
 	public void setName( String cacheName ) {
 		this.baseName = Fqn.fromElements( cacheName );
 	}

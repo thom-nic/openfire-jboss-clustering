@@ -18,7 +18,6 @@ import org.xmpp.packet.JID;
 import org.xmpp.packet.Packet;
 
 import com.enernoc.rnd.openfire.cluster.ClusterException;
-import com.enernoc.rnd.openfire.cluster.session.task.GetClientSessionTask;
 import com.enernoc.rnd.openfire.cluster.task.CloseSessionTask;
 import com.enernoc.rnd.openfire.cluster.task.ProcessPacketTask;
 
@@ -53,23 +52,23 @@ public abstract class ClusterSession implements Session, Externalizable {
 		this.address = jid;
 	}
 
-	@Override
+	
 	public void process( Packet packet ) {
 		CacheFactory.doClusterTask( new ProcessPacketTask( packet ), nodeId );
 	}
 
-	@Override
+	
 	public void deliverRawText( String txt ) {
 		throw new UnsupportedOperationException();
 	}
 
-	@Override
+	
 	public boolean validate() {
 		log.warn( "NO-OP : validate not implemented!" );
 		return true;
 	}
 
-	@Override
+	
 	public void close() {
 		CacheFactory.doClusterTask( new CloseSessionTask(address), nodeId );
 		this.closed = true; // TODO assume for now; maybe the task should return a value.
@@ -132,7 +131,7 @@ public abstract class ClusterSession implements Session, Externalizable {
 	}
 	
 	
-	@Override
+	
 	public void writeExternal(ObjectOutput out) throws IOException {
 		ExternalizableUtil ext = ExternalizableUtil.getInstance();
 		this.address.writeExternal(out);
@@ -151,7 +150,7 @@ public abstract class ClusterSession implements Session, Externalizable {
 		doWriteExternal( ext, out );
 	}
 	
-	@Override
+	
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 		ExternalizableUtil ext = ExternalizableUtil.getInstance();
 		this.address.readExternal(in);
@@ -170,71 +169,71 @@ public abstract class ClusterSession implements Session, Externalizable {
 		doReadExternal( ext, in );
 	}
 	
-	@Override
+	
 	public JID getAddress() {
 		return this.address;
 	}
 	
-	@Override
+	
 	public Date getCreationDate() {
 		return created;
 	}
 
-	@Override
+	
 	public String getHostAddress() throws UnknownHostException {
 		return this.hostAddr;
 	}
 
-	@Override
+	
 	public String getHostName() throws UnknownHostException {
 		return this.hostName;
 	}
 
-	@Override
+	
 	public Date getLastActiveDate() {
 		this.checkUpdate();
 		return this.lastActive;
 	}
 
-	@Override
+	
 	public long getNumClientPackets() {
 		this.checkUpdate();
 		return this.clientPackets;
 	}
 
-	@Override
+	
 	public long getNumServerPackets() {
 		this.checkUpdate();
 		return this.serverPackets;
 	}
 
-	@Override
+	
 	public String getServerName() {
 		return this.serverName;
 	}
 
-	@Override
+	
 	public int getStatus() {
 		this.checkUpdate();
 		return this.status;
 	}
 
-	@Override
+	
 	public StreamID getStreamID() {
 		return new StreamID() {
-			@Override public String getID() {
+			 public String getID() {
 				return streamID;
 			}
 		};
 	}
 
-	@Override
+	
 	public boolean isClosed() {
 		this.checkUpdate();
 		return this.closed;
 	}
 
-	@Override
+	
 	public boolean isSecure() {
 		this.checkUpdate();
 		return this.secure;

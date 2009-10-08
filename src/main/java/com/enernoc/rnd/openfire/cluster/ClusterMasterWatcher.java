@@ -37,7 +37,7 @@ public class ClusterMasterWatcher implements ClusterEventListener, Receiver {
 		channel.setReceiver(this);
 	}
 	
-	@Override
+	
 	public void viewAccepted(View v) {
 		log.info( "View accepted: {}", v );
 		if ( this.myAddr == null ) myAddr = channel.getLocalAddress();
@@ -99,19 +99,19 @@ public class ClusterMasterWatcher implements ClusterEventListener, Receiver {
 	/**
 	 * Notify other nodes in the cluster that we have left.
 	 */
-	@Override
+	
 	public void leftCluster() {
 		this.channel.close();
 	}
 			
 	// don't care about these events:
 	
-	@Override public void markedAsSeniorClusterMember() {}
-	@Override public void joinedCluster() {}
-	@Override public void joinedCluster(byte[] arg0) {}
-	@Override public void leftCluster(byte[] arg0) {}
+	 public void markedAsSeniorClusterMember() {}
+	 public void joinedCluster() {}
+	 public void joinedCluster(byte[] arg0) {}
+	 public void leftCluster(byte[] arg0) {}
 
-	@Override
+	
 	public byte[] getState() {
 		log.debug("getState() called");
 		if ( true ) return new byte[] {};
@@ -130,10 +130,10 @@ public class ClusterMasterWatcher implements ClusterEventListener, Receiver {
 		finally { try { out.close(); } catch ( Exception ex ) {} }
 	}
 
-	@Override
+	
 	public void receive(Message arg0) {}
 
-	@Override
+	
 	public void setState(byte[] st) {
 		log.debug("Cluster state changed: {}", new String(st) );
 		if ( true ) return;
@@ -149,9 +149,9 @@ public class ClusterMasterWatcher implements ClusterEventListener, Receiver {
 		finally { try { in.close(); } catch ( Exception ex ) {} }
 	}
 
-	@Override
+	
 	public void block() {}
 
-	@Override
+	
 	public void suspect(Address arg0) {}
 }

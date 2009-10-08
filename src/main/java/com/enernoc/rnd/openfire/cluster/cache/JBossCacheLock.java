@@ -37,13 +37,13 @@ public class JBossCacheLock implements Lock {
 		if ( evt.getFqn().equals( this.node) ) notify();
 	}
 	
-	@Override
+	
 	protected void finalize() throws Throwable {
 		cache.removeCacheListener( this ); // hopefully this is a weak hashMap...
 		super.finalize();
 	}
 	
-	@Override
+	
 	public synchronized void lock() {
 		while ( cache.put( node, LOCK_NODE, lockVal ) != null ) {
 			try { wait(); }
@@ -52,25 +52,25 @@ public class JBossCacheLock implements Lock {
 		locked = true;
 	}
 
-	@Override
+	
 	public synchronized void lockInterruptibly() throws InterruptedException {
 		while ( cache.put( node, LOCK_NODE, lockVal ) != null )
 			wait();
 		locked = true;
 	}
 
-	@Override
+	
 	public Condition newCondition() {
 		return new CacheLockCondition();
 	}
 	
-	@Override
+	
 	public boolean tryLock() {
 		locked = cache.put( node, LOCK_NODE, lockVal ) == null;
 		return locked;
 	}
 
-	@Override
+	
 	public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
 		long duration = System.currentTimeMillis();
 		if ( cache.put( node, LOCK_NODE, lockVal ) == null ) { 
@@ -85,7 +85,7 @@ public class JBossCacheLock implements Lock {
 		return tryLock( timeLeft, MILLISECONDS );
 	}
 
-	@Override
+	
 	public void unlock() {
 		//if ( ! locked ) throw new IllegalMonitorStateException( "Not locked" );
 		cache.removeNode( node );
@@ -96,7 +96,7 @@ public class JBossCacheLock implements Lock {
 
 		volatile boolean notified = false;
 		
-		@Override
+		
 		public synchronized void await() throws InterruptedException {
 			unlock();
 			if ( ! notified ) this.wait();
@@ -104,13 +104,13 @@ public class JBossCacheLock implements Lock {
 			notified = false;
 		}
 
-		@Override
+		
 		public synchronized boolean await(long time, TimeUnit unit)
 				throws InterruptedException {
 			return awaitNanos( unit.toNanos(time) ) > 0;
 		}
 
-		@Override
+		
 		public synchronized long awaitNanos(long nanosTimeout) throws InterruptedException {
 			long duration = System.nanoTime();
 			unlock();// FIXME this isn't really atomic...........
@@ -122,7 +122,7 @@ public class JBossCacheLock implements Lock {
 			return duration - nanosTimeout;
 		}
 
-		@Override
+		
 		public void awaitUninterruptibly() {
 			
 			unlock();
@@ -139,7 +139,7 @@ public class JBossCacheLock implements Lock {
 			notified = false;
 		}
 
-		@Override
+		
 		public boolean awaitUntil(Date deadline) throws InterruptedException {
 			try {
 				unlock();
@@ -150,13 +150,13 @@ public class JBossCacheLock implements Lock {
 			} finally { notified = false; }
 		}
 
-		@Override
+		
 		public synchronized void signal() {
 			this.notified = true;
 			this.notify();
 		}
 
-		@Override
+		
 		public synchronized void signalAll() {
 			this.notified = true;
 			this.notifyAll();

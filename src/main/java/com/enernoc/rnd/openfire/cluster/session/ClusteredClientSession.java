@@ -85,79 +85,79 @@ public class ClusteredClientSession extends ClusterSession implements ClientSess
 		return new GetClientSessionTask( super.address );
 	}
 
-	@Override
+	
 	public boolean canFloodOfflineMessages() {
 		super.checkUpdate();
 		return this.canFloodOffline;
 	}
 
-	@Override
+	
 	public PrivacyList getActiveList() {
 		super.checkUpdate();
 		return this.activeList;
 	}
 
-	@Override
+	
 	public PrivacyList getDefaultList() {
 		super.checkUpdate();
 		return this.defaultList;
 	}
 
-	@Override
+	
 	public Presence getPresence() {
 		super.checkUpdate();
 		return this.presence;
 	}
 
-	@Override
+	
 	public String getUsername() throws UserNotFoundException {
 		super.checkUpdate();
 		return this.username;
 	}
 
-	@Override
+	
 	public boolean isAnonymousUser() {
 		super.checkUpdate();
 		return this.anonymous;
 	}
 
-	@Override
+	
 	public boolean isInitialized() {
 		super.checkUpdate();
 		return this.initialized;
 	}
 
-	@Override
+	
 	public boolean isOfflineFloodStopped() {
 		super.checkUpdate();
 		return this.stoppedFloodOffline;
 	}
 
-	@Override
+	
 	public int incrementConflictCount() {
 		// TODO update server side.
 		return 0;
 	}
 
-	@Override
+	
 	public void setActiveList( PrivacyList aList ) {
 		// TODO Auto-generated method stub
 		
 	}
 
-	@Override
+	
 	public void setDefaultList( PrivacyList dList ) {
 		// TODO Auto-generated method stub
 		
 	}
 
-	@Override
+	
 	public void setInitialized( boolean init ) {
 		// TODO Auto-generated method stub
 		
 	}
 
-	@Override
+	
 	public void setPresence( Presence p ) {
 		// TODO Auto-generated method stub
 		

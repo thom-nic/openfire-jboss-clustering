@@ -43,8 +43,8 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 	protected final Logger log = LoggerFactory.getLogger(getClass());
 	
 	// TODO replace with CacheManager?
-	CacheFactory factory = new DefaultCacheFactory();
-	org.jboss.cache.Cache cache;
+	private CacheFactory factory = new DefaultCacheFactory();
+	private org.jboss.cache.Cache cache;
 	
 	protected URL cacheConfigURL;
 	

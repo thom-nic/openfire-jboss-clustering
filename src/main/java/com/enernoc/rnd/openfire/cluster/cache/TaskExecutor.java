@@ -20,7 +20,7 @@ public class TaskExecutor implements RequestHandler {
 		response.setRequestHandler( this );
 	}
 	
-	@Override public Object handle( Message msg ) {
+	public Object handle( Message msg ) {
 		try { 
 			ObjectInputStream in = new ObjectInputStream( new ByteArrayInputStream( msg.getBuffer() ) );
 			// TODO execute incoming tasks from a threadpool? 
