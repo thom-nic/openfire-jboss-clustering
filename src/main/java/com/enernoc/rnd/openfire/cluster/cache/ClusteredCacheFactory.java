@@ -18,7 +18,6 @@ import org.jboss.cache.DefaultCacheFactory;
 import org.jgroups.Address;
 import org.jgroups.Channel;
 import org.jgroups.ChannelException;
-import org.jgroups.JChannel;
 import org.jgroups.JChannelFactory;
 import org.jgroups.Message;
 import org.jgroups.blocks.GroupRequest;
@@ -41,12 +40,9 @@ import org.slf4j.LoggerFactory;
 
 import com.enernoc.rnd.openfire.cluster.ClusterException;
 import com.enernoc.rnd.openfire.cluster.ClusterMasterWatcher;
-import com.enernoc.rnd.openfire.cluster.ClusterPacketRouter;
 import com.enernoc.rnd.openfire.cluster.ExternalUtil;
 import com.enernoc.rnd.openfire.cluster.JBossClusterPlugin;
 import com.enernoc.rnd.openfire.cluster.JGroupsClusterNodeInfo;
-import com.enernoc.rnd.openfire.cluster.session.ClusteredSessionLocator;
-import com.enernoc.rnd.openfire.cluster.session.task.LeftClusterTask;
 
 public class ClusteredCacheFactory implements CacheFactoryStrategy {
 

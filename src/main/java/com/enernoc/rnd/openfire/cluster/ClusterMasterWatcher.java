@@ -148,25 +148,6 @@ public class ClusterMasterWatcher implements Receiver, ClusterEventListener, Mes
 	
 	public void suspect(Address arg0) {}
 	
-	public void removeNode(String nodeId) {
-		if(clusterNodes.containsKey(nodeId)) {
-			log.debug("Removing node: {}", nodeId);
-			clusterNodes.remove(nodeId);
-		} else {
-			log.error("Attempting to remove node {} but it doesn't exist in the node list", nodeId);
-		}
-	}
-	
-	public void addNode(String nodeId) {
-		if(!clusterNodes.containsKey(nodeId)) {
-			log.debug("Adding node: {}", nodeId);
-			//TODO add nodes
-			//clusterNodes.put(nodeId, value);
-		} else {
-			log.error("Attempting to add node {} but it already exists in the node list", nodeId);
-		}
-	}
-	
 	//ClusterEventListener interface
 	public void joinedCluster() {
 		log.info( "This node ({}) has JOINED the cluster.", getLocalAddress() );
@@ -174,7 +155,7 @@ public class ClusterMasterWatcher implements Receiver, ClusterEventListener, Mes
 
 	
 	public void joinedCluster(byte[] nodeID) {
-		log.info( "Node {} has JOINED the cluster.", nodeID );
+		log.info( "Node {} has JOINED the cluster.", new String(nodeID) );
 	}
 
 	
@@ -184,7 +165,7 @@ public class ClusterMasterWatcher implements Receiver, ClusterEventListener, Mes
 
 	
 	public void leftCluster(byte[] nodeID) {
-		log.info( "Node {} has LEFT the cluster.", nodeID );
+		log.info( "Node {} has LEFT the cluster.", new String(nodeID) );
 	}
 
 	
