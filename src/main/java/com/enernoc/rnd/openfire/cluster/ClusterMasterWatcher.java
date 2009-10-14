@@ -28,15 +28,13 @@ import org.slf4j.LoggerFactory;
 public class ClusterMasterWatcher implements Receiver, ClusterEventListener, MessageListener, MembershipListener {
 	protected Logger log = LoggerFactory.getLogger(getClass());
 
-	final Channel channel;
-	Address myAddr;
-	boolean master, enabled = false;
+	private Address myAddr;
+	private boolean master, enabled = false;
 
 	private Map<String,JGroupsClusterNodeInfo> clusterNodes = new HashMap<String, JGroupsClusterNodeInfo>();
 	
-	public ClusterMasterWatcher( Channel ch ) {
-		this.channel = ch;
-		channel.setReceiver(this);
+	public ClusterMasterWatcher( Address myAddr ) {
+		this.myAddr = myAddr;
 	}
 	
 	public void enable() {
@@ -48,12 +46,11 @@ public class ClusterMasterWatcher implements Receiver, ClusterEventListener, Mes
 	public void disable() {
 		log.info("disabling ClusterMasterWatcher");
 		this.enabled = false;
-		this.channel.close();
 	}
 	
 	public void viewAccepted(View v) {
 		log.info( "View accepted: {}", v );
-		if ( this.myAddr == null ) myAddr = channel.getLocalAddress();
+
 		Vector<Address> newNodes = v.getMembers();
 		Map<String,JGroupsClusterNodeInfo> nodeMap = new HashMap<String,JGroupsClusterNodeInfo>(newNodes.size());
 		nodeMap.putAll( this.clusterNodes );

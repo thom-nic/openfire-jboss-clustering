@@ -72,14 +72,14 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 				getClass().getResource("/udp.xml");
 			JChannelFactory channelFactory = new JChannelFactory( config );
 			this.channel = channelFactory.createChannel();
-			masterWatcher = new ClusterMasterWatcher( channel );
 			channel.connect( "OpenFire-Cluster" ); // TODO make configurable
+			masterWatcher = new ClusterMasterWatcher( channel.getLocalAddress() );
 
 			//while ( masterWatcher.getNodes().size() < 1 ) {
 			//	log.info( "Waiting for initial view..." );
 			//	Thread.sleep( 1000 );
 			//}
-			log.info( "Local address: {}", masterWatcher.getLocalAddress() );
+			log.info( "Local address: {}", channel.getLocalAddress() );
 
 			log.info( "Plugin initialized." );
 
@@ -134,8 +134,7 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 	public void stopCluster() {
 		log.info( "Cluster stopping..." );
 		masterWatcher.disable();
-		//org.jivesoftware.util.cache.CacheFactory.doClusterTask(new LeftClusterTask(XMPPServer.getInstance().getNodeID()));
-		
+		channel.close();
 		// TODO should this tell the clusterPlugin to shutdown other services?
 	}
 
