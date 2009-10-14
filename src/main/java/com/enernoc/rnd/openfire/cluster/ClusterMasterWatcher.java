@@ -14,7 +14,9 @@ import java.util.Vector;
 
 import org.jgroups.Address;
 import org.jgroups.Channel;
+import org.jgroups.MembershipListener;
 import org.jgroups.Message;
+import org.jgroups.MessageListener;
 import org.jgroups.Receiver;
 import org.jgroups.View;
 import org.jivesoftware.openfire.cluster.ClusterEventListener;
@@ -23,7 +25,7 @@ import org.jivesoftware.util.cache.ExternalizableUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ClusterMasterWatcher implements ClusterEventListener, Receiver {
+public class ClusterMasterWatcher implements Receiver, ClusterEventListener, MessageListener, MembershipListener {
 	protected Logger log = LoggerFactory.getLogger(getClass());
 
 	final Channel channel;
@@ -37,6 +39,17 @@ public class ClusterMasterWatcher implements ClusterEventListener, Receiver {
 		channel.setReceiver(this);
 	}
 	
+	public void enable() {
+		if ( master ) ClusterManager.fireMarkedAsSeniorClusterMember();
+		else ClusterManager.fireJoinedCluster(true);
+		enabled = true;
+	}
+	
+	public void disable() {
+		log.info("disabling ClusterMasterWatcher");
+		this.enabled = false;
+		this.channel.close();
+	}
 	
 	public void viewAccepted(View v) {
 		log.info( "View accepted: {}", v );
@@ -82,12 +95,6 @@ public class ClusterMasterWatcher implements ClusterEventListener, Receiver {
 //		}
 	}
 	
-	public void enable() {
-		if ( master ) ClusterManager.fireMarkedAsSeniorClusterMember();
-		else ClusterManager.fireJoinedCluster(true);
-		enabled = true;
-	}
-	
 	public Map<String,JGroupsClusterNodeInfo> getNodes() {
 		return Collections.unmodifiableMap(this.clusterNodes);
 	}
@@ -96,22 +103,6 @@ public class ClusterMasterWatcher implements ClusterEventListener, Receiver {
 		return this.myAddr;
 	}
 
-	/**
-	 * Notify other nodes in the cluster that we have left.
-	 */
-	
-	public void leftCluster() {
-		this.channel.close();
-	}
-			
-	// don't care about these events:
-	
-	 public void markedAsSeniorClusterMember() {}
-	 public void joinedCluster() {}
-	 public void joinedCluster(byte[] arg0) {}
-	 public void leftCluster(byte[] arg0) {}
-
-	
 	public byte[] getState() {
 		log.debug("getState() called");
 		if ( true ) return new byte[] {};
@@ -131,7 +122,9 @@ public class ClusterMasterWatcher implements ClusterEventListener, Receiver {
 	}
 
 	
-	public void receive(Message arg0) {}
+	public void receive(Message message) {
+		log.debug("recieved message {}", message.toStringAsObject());
+	}
 
 	
 	public void setState(byte[] st) {
@@ -154,4 +147,48 @@ public class ClusterMasterWatcher implements ClusterEventListener, Receiver {
 
 	
 	public void suspect(Address arg0) {}
+	
+	public void removeNode(String nodeId) {
+		if(clusterNodes.containsKey(nodeId)) {
+			log.debug("Removing node: {}", nodeId);
+			clusterNodes.remove(nodeId);
+		} else {
+			log.error("Attempting to remove node {} but it doesn't exist in the node list", nodeId);
+		}
+	}
+	
+	public void addNode(String nodeId) {
+		if(!clusterNodes.containsKey(nodeId)) {
+			log.debug("Adding node: {}", nodeId);
+			//TODO add nodes
+			//clusterNodes.put(nodeId, value);
+		} else {
+			log.error("Attempting to add node {} but it already exists in the node list", nodeId);
+		}
+	}
+	
+	//ClusterEventListener interface
+	public void joinedCluster() {
+		log.info( "This node ({}) has JOINED the cluster.", getLocalAddress() );
+	}
+
+	
+	public void joinedCluster(byte[] nodeID) {
+		log.info( "Node {} has JOINED the cluster.", nodeID );
+	}
+
+	
+	public void leftCluster() {
+		log.info( "This node ({}) has LEFT the cluster.", getLocalAddress() );
+	}
+
+	
+	public void leftCluster(byte[] nodeID) {
+		log.info( "Node {} has LEFT the cluster.", nodeID );
+	}
+
+	
+	public void markedAsSeniorClusterMember() {
+		log.info( "This node ({}) has been marked as MASTER.", getLocalAddress() );
+	}
 }

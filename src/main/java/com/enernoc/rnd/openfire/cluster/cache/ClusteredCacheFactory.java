@@ -16,7 +16,10 @@ import java.util.concurrent.locks.Lock;
 import org.jboss.cache.CacheFactory;
 import org.jboss.cache.DefaultCacheFactory;
 import org.jgroups.Address;
+import org.jgroups.Channel;
 import org.jgroups.ChannelException;
+import org.jgroups.JChannel;
+import org.jgroups.JChannelFactory;
 import org.jgroups.Message;
 import org.jgroups.blocks.GroupRequest;
 import org.jgroups.blocks.MessageDispatcher;
@@ -25,18 +28,25 @@ import org.jgroups.util.RspList;
 import org.jivesoftware.openfire.XMPPServer;
 import org.jivesoftware.openfire.cluster.ClusterManager;
 import org.jivesoftware.openfire.cluster.ClusterNodeInfo;
+import org.jivesoftware.openfire.cluster.NodeID;
 import org.jivesoftware.openfire.container.Plugin;
 import org.jivesoftware.util.JiveGlobals;
 import org.jivesoftware.util.cache.Cache;
 import org.jivesoftware.util.cache.CacheFactoryStrategy;
 import org.jivesoftware.util.cache.CacheWrapper;
 import org.jivesoftware.util.cache.ClusterTask;
+import org.jivesoftware.util.cache.ExternalizableUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.enernoc.rnd.openfire.cluster.ClusterException;
+import com.enernoc.rnd.openfire.cluster.ClusterMasterWatcher;
+import com.enernoc.rnd.openfire.cluster.ClusterPacketRouter;
+import com.enernoc.rnd.openfire.cluster.ExternalUtil;
 import com.enernoc.rnd.openfire.cluster.JBossClusterPlugin;
 import com.enernoc.rnd.openfire.cluster.JGroupsClusterNodeInfo;
+import com.enernoc.rnd.openfire.cluster.session.ClusteredSessionLocator;
+import com.enernoc.rnd.openfire.cluster.session.task.LeftClusterTask;
 
 public class ClusteredCacheFactory implements CacheFactoryStrategy {
 
@@ -47,30 +57,58 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 	private org.jboss.cache.Cache cache;
 	
 	protected URL cacheConfigURL;
-	
-	JBossClusterPlugin cluster; 
-	MessageDispatcher dispatcher;
-	TaskExecutor taskHandler;
-		
+
+	private JBossClusterPlugin cluster; 
+	private MessageDispatcher dispatcher;
+	private ClusterMasterWatcher masterWatcher;
+	private TaskExecutor taskHandler;
+	private Channel channel;
+
 	/**
 	 * This is called by the {@link ClusterManager}, when 
 	 * {@link JBossClusterPlugin}.initializePlugin() is executed.
 	 */
 	public boolean startCluster() {
 		log.info( "Cluster starting..." );
-		for ( Plugin p : XMPPServer.getInstance().getPluginManager().getPlugins() ) {
-			if ( p.getClass().equals(JBossClusterPlugin.class) ) {
-				this.cluster = (JBossClusterPlugin)p;
-				break;
-			}
-		}
-		
 		try {
+			String clusterConfig = JiveGlobals.getProperty( JBossClusterPlugin.CLUSTER_JGROUPS_CONFIG_PROPERTY );
+			URL config = clusterConfig != null ? getClass().getResource( clusterConfig ) : 
+				getClass().getResource("/udp.xml");
+			JChannelFactory channelFactory = new JChannelFactory( config );
+			this.channel = channelFactory.createChannel();
+			masterWatcher = new ClusterMasterWatcher( channel );
+			channel.connect( "OpenFire-Cluster" ); // TODO make configurable
+
+			//while ( masterWatcher.getNodes().size() < 1 ) {
+			//	log.info( "Waiting for initial view..." );
+			//	Thread.sleep( 1000 );
+			//}
+			log.info( "Local address: {}", masterWatcher.getLocalAddress() );
+
+			log.info( "Plugin initialized." );
+
+			ExternalizableUtil.getInstance().setStrategy( new ExternalUtil() );
+			XMPPServer.getInstance().setNodeID( NodeID.getInstance( masterWatcher.getLocalAddress().toString().getBytes() ) );		
+
+			//if ( ! ClusterManager.isClusteringEnabled() )
+			//	ClusterManager.setClusteringEnabled(true); // calls startup() automatically
+			//else 
+			//	ClusterManager.startup(); // which in turn calls cacheFactory.startClustering() automatically
+			masterWatcher.enable();
+
+			for ( Plugin p : XMPPServer.getInstance().getPluginManager().getPlugins() ) {
+				if ( p.getClass().equals(JBossClusterPlugin.class) ) {
+					this.cluster = (JBossClusterPlugin)p;
+					break;
+				}
+			}
+			
+
 			String cacheConfig = JiveGlobals.getProperty( JBossClusterPlugin.CLUSTER_CACHE_CONFIG_PROPERTY );
 			this.cacheConfigURL = cacheConfig != null ? new URL( cacheConfig ) : 
 				JBossClusterPlugin.class.getResource( "/cache.xml" );
 
-			
+
 			InputStream cfgStream = cacheConfigURL.openStream();
 			try {
 				this.cache = factory.createCache(cfgStream, true);
@@ -84,8 +122,9 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 			}		
 
 			
-			dispatcher = new MessageDispatcher( cluster.getChannel(), null, null, true );
+			dispatcher = new MessageDispatcher( channel, masterWatcher, masterWatcher, true );
 			taskHandler = new TaskExecutor( dispatcher );
+			ClusterManager.addListener(masterWatcher);
 			log.info( "Cache factory started." );
 			return true;
 		}
@@ -98,6 +137,9 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 
 	public void stopCluster() {
 		log.info( "Cluster stopping..." );
+		masterWatcher.disable();
+		//org.jivesoftware.util.cache.CacheFactory.doClusterTask(new LeftClusterTask(XMPPServer.getInstance().getNodeID()));
+		
 		// TODO should this tell the clusterPlugin to shutdown other services?
 	}
 
@@ -140,9 +182,9 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 	
 	public void doClusterTask( ClusterTask task ) {
 		log.debug( "Cluster task {}", task );
-		Collection<JGroupsClusterNodeInfo> nodes = cluster.getClusterNodes().values();
+		Collection<JGroupsClusterNodeInfo> nodes = masterWatcher.getNodes().values();
 		try {
-			Address local = cluster.getLocalAddress();
+			Address local = masterWatcher.getLocalAddress();
 			byte[] data = marshal( task );
 			final Message base = new Message(null, local, data );
 			for ( JGroupsClusterNodeInfo node : nodes ) {
@@ -168,9 +210,9 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 	public boolean doClusterTask( ClusterTask task, byte[] nodeID ) {
 		log.debug( "Cluster task {}", task );
 		Message msg = new Message();
-		Map<String,JGroupsClusterNodeInfo> allNodes = cluster.getClusterNodes(); 
+		Map<String,JGroupsClusterNodeInfo> allNodes = masterWatcher.getNodes(); 
 		msg.setDest( allNodes.get( new String(nodeID) ).getAddress() );
-		msg.setSrc( cluster.getLocalAddress() );
+		msg.setSrc( masterWatcher.getLocalAddress() );
 		try {
 			msg.setBuffer( marshal( task ) );
 			dispatcher.getChannel().send(msg);
@@ -186,9 +228,9 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 			boolean includeLocal ) {
 		log.debug( "Sync Cluster task {}", task );
 		
-		Address local = cluster.getLocalAddress();
+		Address local = masterWatcher.getLocalAddress();
 		Vector<Address> recipients = new Vector<Address>();
-		for ( JGroupsClusterNodeInfo node : cluster.getClusterNodes().values() ) {
+		for ( JGroupsClusterNodeInfo node : masterWatcher.getNodes().values() ) {
 			Address a = node.getAddress();
 			if ( ! includeLocal && a.equals( local ) ) continue;
 			recipients.add( a );
@@ -212,9 +254,9 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 	public Object doSynchronousClusterTask( ClusterTask task, byte[] nodeID ) {
 		log.debug( "Sync Cluster task {}", task );
 		Message msg = new Message();
-		Map<String,JGroupsClusterNodeInfo> allNodes = cluster.getClusterNodes(); 
+		Map<String,JGroupsClusterNodeInfo> allNodes = masterWatcher.getNodes(); 
 		msg.setDest( allNodes.get( new String(nodeID) ).getAddress() );
-		msg.setSrc( cluster.getLocalAddress() );
+		msg.setSrc( masterWatcher.getLocalAddress() );
 		try {
 			msg.setBuffer( marshal( task ) );
 			return dispatcher.sendMessage(msg, GroupRequest.GET_FIRST, 20000);
@@ -233,7 +275,7 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 
 	 @SuppressWarnings("unchecked")
 	public Collection<ClusterNodeInfo> getClusterNodesInfo() {
-		return (Collection)this.cluster.getClusterNodes().values();
+		return (Collection)this.masterWatcher.getNodes().values();
 	}
 
 	
@@ -252,8 +294,8 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 
 	
 	public boolean isSeniorClusterMember() {
-		ClusterNodeInfo localNode = this.cluster.getClusterNodes().get( 
-				this.cluster.getLocalAddress().toString() ); 
+		ClusterNodeInfo localNode = masterWatcher.getNodes().get( 
+				masterWatcher.getLocalAddress().toString() ); 
 		return localNode != null && localNode.isSeniorMember();
 	}
 
