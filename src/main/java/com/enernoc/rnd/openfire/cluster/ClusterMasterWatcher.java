@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Vector;
 
 import org.jgroups.Address;
+import org.jgroups.Channel;
 import org.jgroups.MembershipListener;
 import org.jgroups.Message;
 import org.jgroups.MessageListener;
@@ -27,13 +28,13 @@ import org.slf4j.LoggerFactory;
 public class ClusterMasterWatcher implements Receiver, ClusterEventListener, MessageListener, MembershipListener {
 	protected Logger log = LoggerFactory.getLogger(getClass());
 
-	private Address myAddr;
+	private Channel channel;
 	private boolean master, enabled = false;
 
 	private Map<String,JGroupsClusterNodeInfo> clusterNodes = new HashMap<String, JGroupsClusterNodeInfo>();
 	
-	public ClusterMasterWatcher( Address myAddr ) {
-		this.myAddr = myAddr;
+	public ClusterMasterWatcher( Channel channel ) {
+		this.channel = channel;
 	}
 	
 	public void enable() {
@@ -78,7 +79,7 @@ public class ClusterMasterWatcher implements Receiver, ClusterEventListener, Mes
 		
 		this.clusterNodes = nodeMap;
 		
-		if ( ! master && masterNode.equals(this.myAddr) ) {
+		if ( ! master && masterNode.equals(this.channel.getLocalAddress()) ) {
 			if ( enabled ) ClusterManager.fireMarkedAsSeniorClusterMember();
 			master = true;
 		}
@@ -97,7 +98,7 @@ public class ClusterMasterWatcher implements Receiver, ClusterEventListener, Mes
 	}
 
 	public Address getLocalAddress() {
-		return this.myAddr;
+		return this.channel.getLocalAddress();
 	}
 
 	public byte[] getState() {

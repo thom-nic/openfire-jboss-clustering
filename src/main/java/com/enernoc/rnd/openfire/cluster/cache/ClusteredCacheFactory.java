@@ -72,6 +72,14 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 			//Channel Setup
 			JChannelFactory channelFactory = new JChannelFactory( config );
 			this.channel = channelFactory.createChannel();
+			
+			//Watcher setup
+			masterWatcher = new ClusterMasterWatcher(this.channel);
+			ClusterManager.addListener(masterWatcher);
+			dispatcher = new MessageDispatcher( channel, masterWatcher, masterWatcher, true );
+			taskHandler = new TaskExecutor( dispatcher );
+			
+			//Connect to the replication
 			channel.connect( "OpenFire-Cluster" ); // TODO make configurable
 			log.info( "Local address: {}", channel.getLocalAddress() ); 
 			
@@ -91,17 +99,12 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 				} catch (IOException ex) {}
 			}		
 			
-			//Watcher setup
-			masterWatcher = new ClusterMasterWatcher( channel.getLocalAddress() );
-			ClusterManager.addListener(masterWatcher);
-			dispatcher = new MessageDispatcher( channel, masterWatcher, masterWatcher, true );
-			taskHandler = new TaskExecutor( dispatcher );
+			
 			while(ClusterManager.getNodesInfo().size() < 1) {
 				Thread.sleep(500);
 			}
 			
 			masterWatcher.enable();
-						
 			ExternalizableUtil.getInstance().setStrategy( new ExternalUtil() );
 			XMPPServer.getInstance().setNodeID( NodeID.getInstance( masterWatcher.getLocalAddress().toString().getBytes() ) );		
 
