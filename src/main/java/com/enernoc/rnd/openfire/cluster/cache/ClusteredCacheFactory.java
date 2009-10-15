@@ -72,8 +72,25 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 			//Channel Setup
 			JChannelFactory channelFactory = new JChannelFactory( config );
 			this.channel = channelFactory.createChannel();
-			log.info( "Local address: {}", channel.getLocalAddress() );
 			channel.connect( "OpenFire-Cluster" ); // TODO make configurable
+			log.info( "Local address: {}", channel.getLocalAddress() ); 
+			
+			//Initilize the caches
+			String cacheConfig = JiveGlobals.getProperty( JBossClusterPlugin.CLUSTER_CACHE_CONFIG_PROPERTY );
+			this.cacheConfigURL = cacheConfig != null ? new URL( cacheConfig ) : 
+				JBossClusterPlugin.class.getResource( "/cache.xml" );
+			InputStream cfgStream = cacheConfigURL.openStream();
+			try {
+				this.cache = factory.createCache(cfgStream, true);
+			} catch (Exception e) {
+				log.error("Exception creating the cache, clustering not started", e);
+				throw e;
+			} finally {
+				try {
+					cfgStream.close();
+				} catch (IOException ex) {}
+			}		
+			
 			//Watcher setup
 			masterWatcher = new ClusterMasterWatcher( channel.getLocalAddress() );
 			ClusterManager.addListener(masterWatcher);
@@ -88,23 +105,7 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 			ExternalizableUtil.getInstance().setStrategy( new ExternalUtil() );
 			XMPPServer.getInstance().setNodeID( NodeID.getInstance( masterWatcher.getLocalAddress().toString().getBytes() ) );		
 
-			//Initilize the caches
-			String cacheConfig = JiveGlobals.getProperty( JBossClusterPlugin.CLUSTER_CACHE_CONFIG_PROPERTY );
-			this.cacheConfigURL = cacheConfig != null ? new URL( cacheConfig ) : 
-				JBossClusterPlugin.class.getResource( "/cache.xml" );
-
-			InputStream cfgStream = cacheConfigURL.openStream();
-			try {
-				this.cache = factory.createCache(cfgStream, true);
-			} catch (Exception e) {
-				log.error("Exception creating the cache, clustering not started", e);
-				throw e;
-			} finally {
-				try {
-					cfgStream.close();
-				} catch (IOException ex) {}
-			}		
-
+			
 			log.info( "Cache factory started." );
 			log.info( "Plugin initialized." );
 			return true;
