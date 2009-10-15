@@ -28,7 +28,6 @@ import org.jivesoftware.openfire.XMPPServer;
 import org.jivesoftware.openfire.cluster.ClusterManager;
 import org.jivesoftware.openfire.cluster.ClusterNodeInfo;
 import org.jivesoftware.openfire.cluster.NodeID;
-import org.jivesoftware.openfire.container.Plugin;
 import org.jivesoftware.util.JiveGlobals;
 import org.jivesoftware.util.cache.Cache;
 import org.jivesoftware.util.cache.CacheFactoryStrategy;
@@ -54,7 +53,6 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 	
 	protected URL cacheConfigURL;
 
-	private JBossClusterPlugin cluster; 
 	private MessageDispatcher dispatcher;
 	private ClusterMasterWatcher masterWatcher;
 	private TaskExecutor taskHandler;
@@ -70,40 +68,30 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 			String clusterConfig = JiveGlobals.getProperty( JBossClusterPlugin.CLUSTER_JGROUPS_CONFIG_PROPERTY );
 			URL config = clusterConfig != null ? getClass().getResource( clusterConfig ) : 
 				getClass().getResource("/udp.xml");
+			
+			//Channel Setup
 			JChannelFactory channelFactory = new JChannelFactory( config );
 			this.channel = channelFactory.createChannel();
-			channel.connect( "OpenFire-Cluster" ); // TODO make configurable
-			masterWatcher = new ClusterMasterWatcher( channel.getLocalAddress() );
-
-			//while ( masterWatcher.getNodes().size() < 1 ) {
-			//	log.info( "Waiting for initial view..." );
-			//	Thread.sleep( 1000 );
-			//}
 			log.info( "Local address: {}", channel.getLocalAddress() );
-
-			log.info( "Plugin initialized." );
-
+			channel.connect( "OpenFire-Cluster" ); // TODO make configurable
+			//Watcher setup
+			masterWatcher = new ClusterMasterWatcher( channel.getLocalAddress() );
+			ClusterManager.addListener(masterWatcher);
+			dispatcher = new MessageDispatcher( channel, masterWatcher, masterWatcher, true );
+			taskHandler = new TaskExecutor( dispatcher );
+			while(ClusterManager.getNodesInfo().size() < 1) {
+				Thread.sleep(500);
+			}
+			
+			masterWatcher.enable();
+						
 			ExternalizableUtil.getInstance().setStrategy( new ExternalUtil() );
 			XMPPServer.getInstance().setNodeID( NodeID.getInstance( masterWatcher.getLocalAddress().toString().getBytes() ) );		
 
-			//if ( ! ClusterManager.isClusteringEnabled() )
-			//	ClusterManager.setClusteringEnabled(true); // calls startup() automatically
-			//else 
-			//	ClusterManager.startup(); // which in turn calls cacheFactory.startClustering() automatically
-			masterWatcher.enable();
-
-			for ( Plugin p : XMPPServer.getInstance().getPluginManager().getPlugins() ) {
-				if ( p.getClass().equals(JBossClusterPlugin.class) ) {
-					this.cluster = (JBossClusterPlugin)p;
-					break;
-				}
-			}
-			
-
+			//Initilize the caches
 			String cacheConfig = JiveGlobals.getProperty( JBossClusterPlugin.CLUSTER_CACHE_CONFIG_PROPERTY );
 			this.cacheConfigURL = cacheConfig != null ? new URL( cacheConfig ) : 
 				JBossClusterPlugin.class.getResource( "/cache.xml" );
-
 
 			InputStream cfgStream = cacheConfigURL.openStream();
 			try {
@@ -117,11 +105,8 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 				} catch (IOException ex) {}
 			}		
 
-			
-			dispatcher = new MessageDispatcher( channel, masterWatcher, masterWatcher, true );
-			taskHandler = new TaskExecutor( dispatcher );
-			ClusterManager.addListener(masterWatcher);
 			log.info( "Cache factory started." );
+			log.info( "Plugin initialized." );
 			return true;
 		}
 		catch ( Exception ex ) {
@@ -135,6 +120,11 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 		log.info( "Cluster stopping..." );
 		masterWatcher.disable();
 		channel.close();
+		
+		masterWatcher = null;
+		channel = null;
+		dispatcher = null;
+		taskHandler = null;
 		// TODO should this tell the clusterPlugin to shutdown other services?
 	}
 

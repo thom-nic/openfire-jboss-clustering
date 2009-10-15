@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.Vector;
 
 import org.jgroups.Address;
-import org.jgroups.Channel;
 import org.jgroups.MembershipListener;
 import org.jgroups.Message;
 import org.jgroups.MessageListener;
@@ -45,6 +44,7 @@ public class ClusterMasterWatcher implements Receiver, ClusterEventListener, Mes
 	
 	public void disable() {
 		log.info("disabling ClusterMasterWatcher");
+		ClusterManager.fireLeftCluster();
 		this.enabled = false;
 	}
 	
@@ -68,7 +68,7 @@ public class ClusterMasterWatcher implements Receiver, ClusterEventListener, Mes
 			}
 
 		for ( Address node : newNodes ) { // look for new nodes 
-			if ( ! peerNodes.contains( node ) && ! node.equals(myAddr) ) {
+			if ( ! peerNodes.contains( node ) ) {
 				JGroupsClusterNodeInfo n = new JGroupsClusterNodeInfo( node );
 				if ( node.equals(masterNode) ) n.setSenior(true);
 				nodeMap.put( node.toString(), n );

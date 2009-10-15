@@ -1,6 +1,8 @@
 package com.enernoc.rnd.openfire.cluster;
 
 import java.io.File;
+import java.net.Inet4Address;
+import java.net.UnknownHostException;
 import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
@@ -33,6 +35,11 @@ public class JBossClusterPlugin implements Plugin {
 	}
 
 	public void initializePlugin( PluginManager mgr, File pluginDir ) {
+		try {
+			log.debug(new String(Inet4Address.getLocalHost().getAddress()));
+		} catch (UnknownHostException e) {
+			log.debug("unable to obtain ipaddress for host");
+		}
 		LogManager.getLogManager().getLogger("").setLevel(Level.FINE);
 		Enumeration<String> es = LogManager.getLogManager().getLoggerNames();
 		while ( es.hasMoreElements() ) log.error( es.nextElement() );
