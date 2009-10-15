@@ -99,7 +99,8 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 				} catch (IOException ex) {}
 			}		
 			
-			
+			//TODO add some code here so that when a certain number of retries
+			//or a time limit is hit we throw an exeception and stop waiting
 			while(ClusterManager.getNodesInfo().size() < 1) {
 				Thread.sleep(500);
 			}
