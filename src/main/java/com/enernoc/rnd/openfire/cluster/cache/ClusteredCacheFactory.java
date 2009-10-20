@@ -14,6 +14,8 @@ import java.util.Vector;
 import java.util.concurrent.locks.Lock;
 
 import org.jboss.cache.CacheFactory;
+import org.jboss.cache.CacheManager;
+import org.jboss.cache.CacheManagerImpl;
 import org.jboss.cache.DefaultCacheFactory;
 import org.jgroups.Address;
 import org.jgroups.Channel;
@@ -48,6 +50,7 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 	protected final Logger log = LoggerFactory.getLogger(getClass());
 	
 	// TODO replace with CacheManager?
+	@SuppressWarnings("unchecked")
 	private CacheFactory factory = new DefaultCacheFactory();
 	private org.jboss.cache.Cache cache;
 	

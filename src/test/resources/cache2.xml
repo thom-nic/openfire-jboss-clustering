@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jbosscache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="urn:jboss:jbosscache-core:config:3.1">
+
+    <!-- http://www.jboss.org/file-access/default/members/jbosscache/freezone/docs/3.0.3.GA/userguide_en/html/configuration_reference_chapter.html#sample_xml_file -->
+    <clustering  mode="replication" clusterName='OpenFire-Cache'>
+        <sync replTimeout='2000' />
+        <stateRetrieval fetchInMemoryState='true' />
+        <jgroupsConfig configFile="udp2.xml" />
+    </clustering>
+    
+    <locking isolationLevel="REPEATABLE_READ"
+         lockParentForChildInsertRemove="false"
+         lockAcquisitionTimeout="20000"
+         nodeLockingScheme="mvcc" concurrencyLevel="500" />
+</jbosscache>

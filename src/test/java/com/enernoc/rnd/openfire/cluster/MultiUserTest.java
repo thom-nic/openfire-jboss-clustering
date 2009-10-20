@@ -13,8 +13,10 @@ import org.jivesoftware.smack.filter.PacketFilter;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore
 public class MultiUserTest {
 	static ConnectionConfiguration c1 = new ConnectionConfiguration( "localhost", 5222 );
 	static ConnectionConfiguration c2 = new ConnectionConfiguration( "bbeggs-server", 5222 );

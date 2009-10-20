@@ -33,12 +33,18 @@ public class JBossCache<K,V> implements org.jivesoftware.util.cache.Cache<K,V> {
 	public JBossCache( String cacheName, Cache<K,V> cache ) throws IOException {
 		this.cache = cache;
 		this.baseName = Fqn.fromElements( cacheName );
+		this.cache.start();
 	}
 	
 	public JBossCache( String cacheName ) throws IOException {
+		this(cacheName, "cache.xml");
+	}
+	
+	public JBossCache( String cacheName, String configFile ) throws IOException {
 		this.baseName = Fqn.fromElements( cacheName );
 		CacheFactory<K,V> fac = new DefaultCacheFactory<K,V>();
-		this.cache = fac.createCache(JBossCache.class.getResourceAsStream("/cache.xml"));
+		this.cache = fac.createCache(JBossCache.class.getResourceAsStream("/" + configFile));
+		this.cache.start();
 	}
 	
 	
@@ -78,8 +84,10 @@ public class JBossCache<K,V> implements org.jivesoftware.util.cache.Cache<K,V> {
 
 	
 	public boolean containsValue(Object val) {
-		for ( V v : this.values() ) // TODO performance 
-			if (v.equals( val ) ) return true;
+		for ( V v : this.values() ) { // TODO performance 
+			if (v.equals( val ) ) 
+				return true;
+		}
 		return false;
 	}
 
