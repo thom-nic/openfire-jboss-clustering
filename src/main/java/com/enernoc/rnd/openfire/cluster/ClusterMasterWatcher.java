@@ -121,7 +121,7 @@ public class ClusterMasterWatcher implements Receiver, ClusterEventListener, Mes
 
 	
 	public void receive(Message message) {
-		log.debug("recieved message {}", message.toStringAsObject());
+		log.debug("recieved message from {}", message.toString());
 	}
 
 	

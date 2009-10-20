@@ -94,11 +94,11 @@ public abstract class ClusterSession implements Session, Externalizable {
 	 */
 	protected void checkUpdate() {
 		// only update from remote server every so often.
-		if ( ( System.currentTimeMillis() - lastUpdated ) < refreshInterval ) return;
+		if ( ( System.currentTimeMillis() - lastUpdated ) > refreshInterval ) return;
 		
 		ClusterTask task = getSessionUpdateTask();
-		CacheFactory.doSynchronousClusterTask( task, this.nodeId );
-		this.copy( (Session)task.getResult() );
+		Object o = CacheFactory.doSynchronousClusterTask( task, this.nodeId );
+		this.copy( (Session) o );
 		
 		lastUpdated = System.currentTimeMillis();
 	}

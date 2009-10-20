@@ -252,7 +252,8 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 		msg.setSrc( masterWatcher.getLocalAddress() );
 		try {
 			msg.setBuffer( marshal( task ) );
-			return dispatcher.sendMessage(msg, GroupRequest.GET_FIRST, 20000);
+			Object o = dispatcher.sendMessage(msg, GroupRequest.GET_FIRST, 20000);
+			return o;
 		}
 		catch ( Exception ex ) {
 			log.warn( "Exception sending message {}", msg, ex );

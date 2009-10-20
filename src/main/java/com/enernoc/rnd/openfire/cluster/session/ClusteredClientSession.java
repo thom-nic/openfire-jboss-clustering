@@ -58,8 +58,9 @@ public class ClusteredClientSession extends ClusterSession implements ClientSess
 	void doReadExternal( ExternalizableUtil ext, ObjectInput in ) throws IOException, ClassNotFoundException {
 		this.canFloodOffline = ext.readBoolean(in);
 		this.stoppedFloodOffline = ext.readBoolean(in);
-		this.activeList.readExternal(in);
-		this.defaultList.readExternal(in);
+		//FIXME Peak ahead in the buffer to see if the privacy lists are attached?
+		//this.activeList.readExternal(in);
+		//this.defaultList.readExternal(in);
 		try {
 			this.presence = new Presence( DocumentHelper.parseText( ext.readSafeUTF(in) ).getRootElement() );
 		} catch ( DocumentException ex ) { throw new ClusterException( ex ); }
@@ -72,8 +73,12 @@ public class ClusteredClientSession extends ClusterSession implements ClientSess
 	void doWriteExternal( ExternalizableUtil ext, ObjectOutput out ) throws IOException {
 		ext.writeBoolean(out, this.canFloodOffline );
 		ext.writeBoolean(out, this.stoppedFloodOffline );
-		this.activeList.writeExternal(out);
-		this.defaultList.writeExternal(out);
+		if( this.activeList != null ) {
+			this.activeList.writeExternal(out);
+		}
+		if( this.defaultList != null ) {
+			this.defaultList.writeExternal(out);
+		}
 		ext.writeSafeUTF(out, this.presence.toXML() );
 		ext.writeBoolean(out, this.anonymous );
 		ext.writeBoolean(out, this.initialized );
