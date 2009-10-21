@@ -185,17 +185,13 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 				
 				Message msg = base.copy();
 				msg.setDest( node.getAddress() );
-				try {
-					dispatcher.getChannel().send(msg);
-				}
-				catch ( ChannelException ex ) {
-					log.error( "Error sending task {} to node {}", 
-							new Object[] {task, node.getAddress()}, ex );
-				}
+				//FIXME not sure these messages are being sent
+				//dispatcher.send(msg);
+				dispatcher.sendMessage(msg, GroupRequest.GET_FIRST, 10000);
 			}
 		}
-		catch ( IOException ex ) {
-			log.error( "Error serializing task {}", task, ex );
+		catch ( Exception ex ) {
+			log.error( "Error sending task {}", task, ex );
 			return;
 		}
 	}
@@ -208,7 +204,9 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 		msg.setSrc( masterWatcher.getLocalAddress() );
 		try {
 			msg.setBuffer( marshal( task ) );
-			dispatcher.getChannel().send(msg);
+			//FIXME not sure these messages are being sent.
+			//dispatcher.send(msg);
+			dispatcher.sendMessage(msg, GroupRequest.GET_FIRST, 10000);
 			return true;
 		}
 		catch ( Exception ex ) {

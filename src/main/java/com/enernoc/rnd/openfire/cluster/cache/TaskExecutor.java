@@ -13,11 +13,11 @@ import org.slf4j.LoggerFactory;
 public class TaskExecutor implements RequestHandler {
 
 	protected final Logger log = LoggerFactory.getLogger( getClass() );
-	MessageDispatcher response;
+	MessageDispatcher dispatcher;
 	
 	public TaskExecutor( MessageDispatcher dispatcher ) {
-		this.response = dispatcher;
-		response.setRequestHandler( this );
+		this.dispatcher = dispatcher;
+		this.dispatcher.setRequestHandler( this );
 	}
 	
 	public Object handle( Message msg ) {
