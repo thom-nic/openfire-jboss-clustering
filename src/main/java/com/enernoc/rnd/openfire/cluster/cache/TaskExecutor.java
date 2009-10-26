@@ -4,7 +4,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
 
 import org.jgroups.Message;
-import org.jgroups.blocks.MessageDispatcher;
 import org.jgroups.blocks.RequestHandler;
 import org.jivesoftware.util.cache.ClusterTask;
 import org.slf4j.Logger;
@@ -13,11 +12,8 @@ import org.slf4j.LoggerFactory;
 public class TaskExecutor implements RequestHandler {
 
 	protected final Logger log = LoggerFactory.getLogger( getClass() );
-	MessageDispatcher dispatcher;
 	
-	public TaskExecutor( MessageDispatcher dispatcher ) {
-		this.dispatcher = dispatcher;
-		this.dispatcher.setRequestHandler( this );
+	public TaskExecutor() {
 	}
 	
 	public Object handle( Message msg ) {

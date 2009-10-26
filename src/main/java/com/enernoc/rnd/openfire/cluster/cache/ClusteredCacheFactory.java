@@ -10,16 +10,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
+import java.util.Map.Entry;
 import java.util.concurrent.locks.Lock;
 
 import org.jboss.cache.CacheFactory;
-import org.jboss.cache.CacheManager;
-import org.jboss.cache.CacheManagerImpl;
 import org.jboss.cache.DefaultCacheFactory;
+import org.jboss.cache.config.ConfigurationException;
 import org.jgroups.Address;
 import org.jgroups.Channel;
-import org.jgroups.ChannelException;
 import org.jgroups.JChannelFactory;
 import org.jgroups.Message;
 import org.jgroups.blocks.GroupRequest;
@@ -54,8 +54,6 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 	private CacheFactory factory = new DefaultCacheFactory();
 	private org.jboss.cache.Cache cache;
 	
-	protected URL cacheConfigURL;
-
 	private MessageDispatcher dispatcher;
 	private ClusterMasterWatcher masterWatcher;
 	private TaskExecutor taskHandler;
@@ -68,6 +66,37 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 	public boolean startCluster() {
 		log.info( "Cluster starting..." );
 		try {
+			//Initilize the caches
+			String cacheConfig = JiveGlobals.getProperty( JBossClusterPlugin.CLUSTER_CACHE_CONFIG_PROPERTY );
+			URL cacheConfigURL = cacheConfig != null ? new URL( cacheConfig ) : 
+				JBossClusterPlugin.class.getResource( "/cache.xml" );
+			InputStream cfgStream = cacheConfigURL.openStream();
+			try {
+				this.cache = factory.createCache(cfgStream, true);
+			} catch (ConfigurationException e) {
+				log.error("Exception creating the cache, clustering not started", e);
+				throw e;
+			} finally {
+				try {
+					cfgStream.close();
+				} catch (IOException ex) {}
+			}
+			
+			//Convert existing caches
+			for(Cache cacheWrapper : org.jivesoftware.util.cache.CacheFactory.getAllCaches()) {
+				if( ! (((CacheWrapper) cacheWrapper).getWrappedCache() instanceof JBossCache) ) {
+					JBossCache newCache = new JBossCache(cacheWrapper.getName());
+					for(Object k : cacheWrapper.keySet()) {
+						if( ! newCache.containsKey(k) ) {
+							newCache.put(k, cacheWrapper.get(k));
+						}
+					}
+					((CacheWrapper) cacheWrapper).setWrappedCache(newCache);
+				}
+			}
+			
+			
+			
 			String clusterConfig = JiveGlobals.getProperty( JBossClusterPlugin.CLUSTER_JGROUPS_CONFIG_PROPERTY );
 			URL config = clusterConfig != null ? getClass().getResource( clusterConfig ) : 
 				getClass().getResource("/udp.xml");
@@ -77,30 +106,17 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 			this.channel = channelFactory.createChannel();
 			
 			//Watcher setup
-			masterWatcher = new ClusterMasterWatcher(this.channel);
+			this.masterWatcher = new ClusterMasterWatcher(this.channel);
+			this.taskHandler = new TaskExecutor();
 			ClusterManager.addListener(masterWatcher);
-			dispatcher = new MessageDispatcher( channel, masterWatcher, masterWatcher, true );
-			taskHandler = new TaskExecutor( dispatcher );
+			this.dispatcher = new MessageDispatcher( channel, masterWatcher, masterWatcher, taskHandler, true );
 			
 			//Connect to the replication
-			channel.connect( "OpenFire-Cluster" ); // TODO make configurable
+			this.channel.connect( "OpenFire-Cluster" ); // TODO make configurable
+			XMPPServer.getInstance().setNodeID( NodeID.getInstance( masterWatcher.getLocalAddress().toString().getBytes() ) );
 			log.info( "Local address: {}", channel.getLocalAddress() ); 
+			log.info( "NodeId: {}", new String(XMPPServer.getInstance().getNodeID().toByteArray()) );
 			
-			//Initilize the caches
-			String cacheConfig = JiveGlobals.getProperty( JBossClusterPlugin.CLUSTER_CACHE_CONFIG_PROPERTY );
-			this.cacheConfigURL = cacheConfig != null ? new URL( cacheConfig ) : 
-				JBossClusterPlugin.class.getResource( "/cache.xml" );
-			InputStream cfgStream = cacheConfigURL.openStream();
-			try {
-				this.cache = factory.createCache(cfgStream, true);
-			} catch (Exception e) {
-				log.error("Exception creating the cache, clustering not started", e);
-				throw e;
-			} finally {
-				try {
-					cfgStream.close();
-				} catch (IOException ex) {}
-			}		
 			
 			//TODO add some code here so that when a certain number of retries
 			//or a time limit is hit we throw an exeception and stop waiting
@@ -108,10 +124,8 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 				Thread.sleep(500);
 			}
 			
-			masterWatcher.enable();
+        	masterWatcher.enable();
 			ExternalizableUtil.getInstance().setStrategy( new ExternalUtil() );
-			XMPPServer.getInstance().setNodeID( NodeID.getInstance( masterWatcher.getLocalAddress().toString().getBytes() ) );		
-
 			
 			log.info( "Cache factory started." );
 			log.info( "Plugin initialized." );
