@@ -16,6 +16,7 @@ public class ClusterPacketRouter implements RemotePacketRouter {
 	}
 
 	public boolean routePacket( byte[] nodeID, JID receipient, Packet packet ) {
+		packet.setTo(receipient);
 		CacheFactory.doClusterTask( new PacketRouterTask(packet), nodeID );
 		return true;
 	}	
