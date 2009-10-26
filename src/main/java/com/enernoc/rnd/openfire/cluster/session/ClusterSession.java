@@ -54,6 +54,7 @@ public abstract class ClusterSession implements Session, Externalizable {
 
 	
 	public void process( Packet packet ) {
+		packet.setTo(this.getAddress());
 		CacheFactory.doClusterTask( new ProcessPacketTask( packet ), nodeId );
 	}
 
