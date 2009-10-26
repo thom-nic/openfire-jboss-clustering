@@ -27,7 +27,8 @@ public class TaskExecutor implements RequestHandler {
 			return task.getResult();
 		}
 		catch ( Exception ex ) {
-			log.error( "Error executing task from msg {}", msg, ex );
+			log.error( "Error executing task from msg {}", msg );
+			log.error( " Stack Trace: ", ex);
 			return null;
 		}
 	}
