@@ -2,9 +2,14 @@ package com.enernoc.rnd.openfire.cluster.cache;
 
 import static junit.framework.Assert.*;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jboss.cache.CacheFactory;
+import org.jboss.cache.DefaultCacheFactory;
+import org.jboss.cache.config.ConfigurationException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,12 +18,25 @@ public class JBossCacheTest {
 	
 	JBossCache<String, Widget> cache1;
 	JBossCache<String, Widget> cache2;
+	private org.jboss.cache.Cache cache;
 	
 	@Before public void createCache() throws Exception {
-		this.cache1 = new JBossCache<String, Widget>( "testCache", "cache.xml" );
+		CacheFactory factory = new DefaultCacheFactory();
+		InputStream cfgStream = JBossCacheTest.class.getResourceAsStream("/cache.xml");
+		try {
+			this.cache =  factory.createCache(cfgStream, true);
+		} catch (ConfigurationException e) {
+			
+		} finally {
+			try {
+				cfgStream.close();
+			} catch( IOException ex) {}
+		}
+		this.cache1 = new JBossCache<String, Widget>( "testCache", cache );
 		assertEquals( 0, cache1.size() );
 		
-		this.cache2 = new JBossCache<String, Widget>( "testCache", "cache2.xml" );
+		
+		this.cache2 = new JBossCache<String, Widget>( "testCache", cache );
 		assertEquals( 0, cache2.size() );
 	}
 	

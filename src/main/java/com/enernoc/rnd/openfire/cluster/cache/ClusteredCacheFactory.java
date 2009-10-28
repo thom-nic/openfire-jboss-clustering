@@ -10,9 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Vector;
-import java.util.Map.Entry;
 import java.util.concurrent.locks.Lock;
 
 import org.jboss.cache.CacheFactory;
@@ -52,6 +50,7 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 	// TODO replace with CacheManager?
 	@SuppressWarnings("unchecked")
 	private CacheFactory factory = new DefaultCacheFactory();
+	@SuppressWarnings("unchecked")
 	private org.jboss.cache.Cache cache;
 	
 	private MessageDispatcher dispatcher;
@@ -63,6 +62,7 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 	 * This is called by the {@link ClusterManager}, when 
 	 * {@link JBossClusterPlugin}.initializePlugin() is executed.
 	 */
+	@SuppressWarnings("unchecked")
 	public boolean startCluster() {
 		log.info( "Cluster starting..." );
 		try {
@@ -85,7 +85,7 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 			//Convert existing caches
 			for(Cache cacheWrapper : org.jivesoftware.util.cache.CacheFactory.getAllCaches()) {
 				if( ! (((CacheWrapper) cacheWrapper).getWrappedCache() instanceof JBossCache) ) {
-					JBossCache newCache = new JBossCache(cacheWrapper.getName());
+					JBossCache newCache = (JBossCache) this.createCache(cacheWrapper.getName());
 					for(Object k : cacheWrapper.keySet()) {
 						if( ! newCache.containsKey(k) ) {
 							newCache.put(k, cacheWrapper.get(k));
@@ -154,7 +154,7 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 	public Cache createCache(String name) {
 		log.info( "Creating cache '{}'", name );
 		try {
-			return new JBossCache( name, this.cache );			
+			return new JBossCache( name, cache );			
 		}
 		catch ( IOException ex ) {
 			throw new ClusterException( ex );

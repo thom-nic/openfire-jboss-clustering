@@ -11,8 +11,6 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
 import org.jboss.cache.Cache;
-import org.jboss.cache.CacheFactory;
-import org.jboss.cache.DefaultCacheFactory;
 import org.jboss.cache.Fqn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,20 +31,7 @@ public class JBossCache<K,V> implements org.jivesoftware.util.cache.Cache<K,V> {
 	public JBossCache( String cacheName, Cache<K,V> cache ) throws IOException {
 		this.cache = cache;
 		this.baseName = Fqn.fromElements( cacheName );
-		this.cache.start();
 	}
-	
-	public JBossCache( String cacheName ) throws IOException {
-		this(cacheName, "cache.xml");
-	}
-	
-	public JBossCache( String cacheName, String configFile ) throws IOException {
-		this.baseName = Fqn.fromElements( cacheName );
-		CacheFactory<K,V> fac = new DefaultCacheFactory<K,V>();
-		this.cache = fac.createCache(JBossCache.class.getResourceAsStream("/" + configFile));
-		this.cache.start();
-	}
-	
 	
 	public void shutdown() {
 		try {
