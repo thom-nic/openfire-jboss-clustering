@@ -59,6 +59,8 @@ public class ClusteredClientSession extends ClusterSession implements ClientSess
 		this.canFloodOffline = ext.readBoolean(in);
 		this.stoppedFloodOffline = ext.readBoolean(in);
 		//FIXME Peak ahead in the buffer to see if the privacy lists are attached?
+		this.activeList = null;
+		this.defaultList = null;
 		//this.activeList.readExternal(in);
 		//this.defaultList.readExternal(in);
 		try {

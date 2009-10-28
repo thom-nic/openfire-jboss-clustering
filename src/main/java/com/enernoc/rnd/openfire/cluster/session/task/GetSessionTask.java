@@ -33,7 +33,6 @@ public abstract class GetSessionTask<S extends ClusterSession> implements Cluste
 	
 	public void run() {
 		//TODO fix this?  Get the list here? not sure
-		//PrivacyListManager.getInstance().
 		this.session = newSession();
 		session.copy( getLocalSession() );
 	}
