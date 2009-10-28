@@ -109,7 +109,7 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 			this.masterWatcher = new ClusterMasterWatcher(this.channel);
 			this.taskHandler = new TaskExecutor();
 			ClusterManager.addListener(masterWatcher);
-			this.dispatcher = new MessageDispatcher( channel, masterWatcher, masterWatcher, taskHandler, true );
+			this.dispatcher = new MessageDispatcher( channel, taskHandler, masterWatcher, taskHandler, true );
 			
 			//Connect to the replication
 			this.channel.connect( "OpenFire-Cluster" ); // TODO make configurable
@@ -189,19 +189,18 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 	
 	public void doClusterTask( ClusterTask task ) {
 		log.debug( "Cluster task {}", task );
-		Collection<JGroupsClusterNodeInfo> nodes = masterWatcher.getNodes().values();
 		try {
 			Address local = masterWatcher.getLocalAddress();
 			byte[] data = marshal( task );
 			final Message base = new Message(null, local, data );
-			for ( JGroupsClusterNodeInfo node : nodes ) {
-				if ( node.getAddress().equals( local ) ) continue;
-				
+			for ( JGroupsClusterNodeInfo node : masterWatcher.getNodes().values() ) {
+				if ( node.getAddress().equals( local ) ) 
+					continue;
 				Message msg = base.copy();
 				msg.setDest( node.getAddress() );
 				//FIXME not sure these messages are being sent
-				//dispatcher.send(msg);
-				dispatcher.sendMessage(msg, GroupRequest.GET_FIRST, 10000);
+				dispatcher.send(msg);
+				//dispatcher.sendMessage(msg, GroupRequest.GET_FIRST, 10000);
 			}
 		}
 		catch ( Exception ex ) {
@@ -212,15 +211,14 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 
 	public boolean doClusterTask( ClusterTask task, byte[] nodeID ) {
 		log.debug( "Cluster task {}", task );
-		Message msg = new Message();
-		Map<String,JGroupsClusterNodeInfo> allNodes = masterWatcher.getNodes(); 
-		msg.setDest( allNodes.get( new String(nodeID) ).getAddress() );
+		Message msg = new Message(); 
+		msg.setDest( masterWatcher.getNodes().get( new String(nodeID) ).getAddress() );
 		msg.setSrc( masterWatcher.getLocalAddress() );
 		try {
 			msg.setBuffer( marshal( task ) );
 			//FIXME not sure these messages are being sent.
-			//dispatcher.send(msg);
-			dispatcher.sendMessage(msg, GroupRequest.GET_FIRST, 10000);
+			dispatcher.send(msg);
+			//dispatcher.sendMessage(msg, GroupRequest.GET_FIRST, 10000);
 			return true;
 		}
 		catch ( Exception ex ) {

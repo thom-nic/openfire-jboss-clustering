@@ -12,5 +12,17 @@
     <locking isolationLevel="REPEATABLE_READ"
          lockParentForChildInsertRemove="false"
          lockAcquisitionTimeout="20000"
-         nodeLockingScheme="mvcc" concurrencyLevel="500" />
+         nodeLockingScheme="mvcc" 
+		 writeSkewCheck="false"
+         useLockStriping="true"
+		 concurrencyLevel="500" />
+		 
+	 <transaction
+         transactionManagerLookupClass="org.jboss.cache.transaction.GenericTransactionManagerLookup"
+         syncRollbackPhase="false"
+         syncCommitPhase="false"/>
+		 
+	 <shutdown
+         hookBehavior="REGISTER"/>
+		 
 </jbosscache>

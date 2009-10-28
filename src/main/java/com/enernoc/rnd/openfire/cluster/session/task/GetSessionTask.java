@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
+import org.jivesoftware.openfire.privacy.PrivacyListManager;
+import org.jivesoftware.openfire.privacy.PrivacyListProvider;
 import org.jivesoftware.openfire.session.Session;
 import org.jivesoftware.util.cache.ClusterTask;
 import org.slf4j.Logger;
@@ -30,6 +32,8 @@ public abstract class GetSessionTask<S extends ClusterSession> implements Cluste
 	protected abstract Session getLocalSession();
 	
 	public void run() {
+		//TODO fix this?  Get the list here? not sure
+		//PrivacyListManager.getInstance().
 		this.session = newSession();
 		session.copy( getLocalSession() );
 	}
