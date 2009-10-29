@@ -132,8 +132,8 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 			return true;
 		}
 		catch ( Exception ex ) {
-			//throw new ClusterException( "FATAL error initializing task queue services", ex );
-			log.error( "FATAL error initializing task queue services", ex );
+			log.error( "FATAL error initializing cluster", ex );
+			this.stopCluster();
 			return false;
 		}
 	}
@@ -141,13 +141,31 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 	public void stopCluster() {
 		log.info( "Cluster stopping..." );
 		masterWatcher.disable();
-		channel.close();
+		try {
+			channel.close();
+		} catch (Exception e) {
+			log.error("Error closing channel {}", e.getMessage());
+		}
+		
+		//Convert caches back to local caches
+		try {
+			CacheFactoryStrategy cfs = (CacheFactoryStrategy) Class.forName(org.jivesoftware.util.cache.CacheFactory.LOCAL_CACHE_PROPERTY_NAME).newInstance();
+			for(Cache cacheWrapper : org.jivesoftware.util.cache.CacheFactory.getAllCaches()) {
+				if( (((CacheWrapper) cacheWrapper).getWrappedCache() instanceof JBossCache) ) {
+					org.jivesoftware.util.cache.Cache newCache = cfs.createCache(cacheWrapper.getName());
+					newCache.putAll(((CacheWrapper) cacheWrapper).getWrappedCache());
+					((CacheWrapper) cacheWrapper).setWrappedCache(newCache);
+				}
+			}
+		} catch (Exception e) {
+			log.error("Error converting caches from cluster caches to local caches. Restarting server" , e);
+			XMPPServer.getInstance().restart();
+		}
 		
 		masterWatcher = null;
 		channel = null;
 		dispatcher = null;
 		taskHandler = null;
-		// TODO should this tell the clusterPlugin to shutdown other services?
 	}
 
 	@SuppressWarnings("unchecked")

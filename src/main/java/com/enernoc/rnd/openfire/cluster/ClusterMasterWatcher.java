@@ -16,7 +16,6 @@ import org.jgroups.Address;
 import org.jgroups.Channel;
 import org.jgroups.MembershipListener;
 import org.jgroups.Message;
-import org.jgroups.MessageListener;
 import org.jgroups.Receiver;
 import org.jgroups.View;
 import org.jivesoftware.openfire.cluster.ClusterEventListener;
@@ -25,7 +24,7 @@ import org.jivesoftware.util.cache.ExternalizableUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ClusterMasterWatcher implements Receiver, ClusterEventListener, MessageListener, MembershipListener {
+public class ClusterMasterWatcher implements Receiver, ClusterEventListener, MembershipListener {
 	protected Logger log = LoggerFactory.getLogger(getClass());
 
 	private Channel channel;
