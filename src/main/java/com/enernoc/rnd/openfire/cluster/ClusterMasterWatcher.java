@@ -16,7 +16,6 @@ import org.jgroups.Address;
 import org.jgroups.Channel;
 import org.jgroups.MembershipListener;
 import org.jgroups.Message;
-import org.jgroups.Receiver;
 import org.jgroups.View;
 import org.jivesoftware.openfire.cluster.ClusterEventListener;
 import org.jivesoftware.openfire.cluster.ClusterManager;
@@ -24,7 +23,7 @@ import org.jivesoftware.util.cache.ExternalizableUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ClusterMasterWatcher implements Receiver, ClusterEventListener, MembershipListener {
+public class ClusterMasterWatcher implements ClusterEventListener, MembershipListener {
 	protected Logger log = LoggerFactory.getLogger(getClass());
 
 	private Channel channel;
@@ -100,47 +99,6 @@ public class ClusterMasterWatcher implements Receiver, ClusterEventListener, Mem
 		return this.channel.getLocalAddress();
 	}
 
-	public byte[] getState() {
-		log.debug("getState() called");
-		if ( true ) return new byte[] {};
-		ByteArrayOutputStream data = new ByteArrayOutputStream();
-		ObjectOutputStream out = null;
-		try {
-			out = new ObjectOutputStream(data);
-			ExternalizableUtil.getInstance().writeExternalizableMap(out, this.clusterNodes);
-			out.flush();
-			return data.toByteArray();
-		}
-		catch ( IOException ex ) {
-			log.error( "Couldn't serialize state", ex );
-			return null;
-		}
-		finally { try { out.close(); } catch ( Exception ex ) {} }
-	}
-
-	
-	public void receive(Message message) {
-		log.debug("recieved message from {}", message.getSrc());
-		log.debug("message Body: {}", new String(message.getRawBuffer()));
-	}
-
-	
-	public void setState(byte[] st) {
-		log.debug("Cluster state changed: {}", new String(st) );
-		if ( true ) return;
-		ByteArrayInputStream data = new ByteArrayInputStream(st);
-		ObjectInputStream in = null;
-		try {
-			in = new ObjectInputStream(data);
-			ExternalizableUtil.getInstance().readExternalizableMap(in, this.clusterNodes, getClass().getClassLoader());
-		}
-		catch ( IOException ex ) {
-			log.error( "Couldn't deserialize state", ex );
-		}
-		finally { try { in.close(); } catch ( Exception ex ) {} }
-	}
-
-	
 	public void block() {}
 
 	
