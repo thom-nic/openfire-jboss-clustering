@@ -106,14 +106,14 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 			this.channel = channelFactory.createChannel();
 			
 			//Watcher setup
-			this.masterWatcher = new ClusterMasterWatcher(this.channel);
+			this.masterWatcher = new ClusterMasterWatcher(this.channel.getLocalAddress());
 			this.taskHandler = new TaskExecutor();
 			ClusterManager.addListener(masterWatcher);
 			this.dispatcher = new MessageDispatcher( channel, taskHandler, masterWatcher, taskHandler, true );
 			
 			//Connect to the replication
 			this.channel.connect( "OpenFire-Cluster" ); // TODO make configurable
-			XMPPServer.getInstance().setNodeID( NodeID.getInstance( masterWatcher.getLocalAddress().toString().getBytes() ) );
+			XMPPServer.getInstance().setNodeID( NodeID.getInstance( channel.getLocalAddress().toString().getBytes() ) );
 			log.info( "Local address: {}", channel.getLocalAddress() ); 
 			log.info( "NodeId: {}", new String(XMPPServer.getInstance().getNodeID().toByteArray()) );
 			
@@ -208,7 +208,7 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 	public void doClusterTask( ClusterTask task ) {
 		log.debug( "Cluster task {}", task );
 		try {
-			Address local = masterWatcher.getLocalAddress();
+			Address local = channel.getLocalAddress();
 			byte[] data = marshal( task );
 			final Message base = new Message(null, local, data );
 			for ( JGroupsClusterNodeInfo node : masterWatcher.getNodes().values() ) {
@@ -231,7 +231,7 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 		log.debug( "Cluster task {}", task );
 		Message msg = new Message(); 
 		msg.setDest( masterWatcher.getNodes().get( new String(nodeID) ).getAddress() );
-		msg.setSrc( masterWatcher.getLocalAddress() );
+		msg.setSrc( channel.getLocalAddress() );
 		try {
 			msg.setBuffer( marshal( task ) );
 			//FIXME not sure these messages are being sent.
@@ -249,7 +249,7 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 			boolean includeLocal ) {
 		log.debug( "Sync Cluster task {}", task );
 		
-		Address local = masterWatcher.getLocalAddress();
+		Address local = channel.getLocalAddress();
 		Vector<Address> recipients = new Vector<Address>();
 		for ( JGroupsClusterNodeInfo node : masterWatcher.getNodes().values() ) {
 			Address a = node.getAddress();
@@ -277,7 +277,7 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 		Message msg = new Message();
 		Map<String,JGroupsClusterNodeInfo> allNodes = masterWatcher.getNodes(); 
 		msg.setDest( allNodes.get( new String(nodeID) ).getAddress() );
-		msg.setSrc( masterWatcher.getLocalAddress() );
+		msg.setSrc( channel.getLocalAddress() );
 		try {
 			msg.setBuffer( marshal( task ) );
 			Object o = dispatcher.sendMessage(msg, GroupRequest.GET_FIRST, 20000);
@@ -317,7 +317,7 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 	
 	public boolean isSeniorClusterMember() {
 		ClusterNodeInfo localNode = masterWatcher.getNodes().get( 
-				masterWatcher.getLocalAddress().toString() ); 
+				channel.getLocalAddress().toString() ); 
 		return localNode != null && localNode.isSeniorMember();
 	}
 

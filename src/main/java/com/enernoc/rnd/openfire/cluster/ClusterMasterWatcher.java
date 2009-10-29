@@ -1,10 +1,5 @@
 package com.enernoc.rnd.openfire.cluster;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -13,26 +8,23 @@ import java.util.Map;
 import java.util.Vector;
 
 import org.jgroups.Address;
-import org.jgroups.Channel;
 import org.jgroups.MembershipListener;
-import org.jgroups.Message;
 import org.jgroups.View;
 import org.jivesoftware.openfire.cluster.ClusterEventListener;
 import org.jivesoftware.openfire.cluster.ClusterManager;
-import org.jivesoftware.util.cache.ExternalizableUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ClusterMasterWatcher implements ClusterEventListener, MembershipListener {
 	protected Logger log = LoggerFactory.getLogger(getClass());
 
-	private Channel channel;
+	private Address address;
 	private boolean master, enabled = false;
 
 	private Map<String,JGroupsClusterNodeInfo> clusterNodes = new HashMap<String, JGroupsClusterNodeInfo>();
 	
-	public ClusterMasterWatcher( Channel channel ) {
-		this.channel = channel;
+	public ClusterMasterWatcher( Address address ) {
+		this.address = address;
 	}
 	
 	public void enable() {
@@ -77,7 +69,7 @@ public class ClusterMasterWatcher implements ClusterEventListener, MembershipLis
 		
 		this.clusterNodes = nodeMap;
 		
-		if ( ! master && masterNode.equals(this.channel.getLocalAddress()) ) {
+		if ( ! master && masterNode.equals(address) ) {
 			if ( enabled ) ClusterManager.fireMarkedAsSeniorClusterMember();
 			master = true;
 		}
@@ -95,10 +87,6 @@ public class ClusterMasterWatcher implements ClusterEventListener, MembershipLis
 		return Collections.unmodifiableMap(this.clusterNodes);
 	}
 
-	public Address getLocalAddress() {
-		return this.channel.getLocalAddress();
-	}
-
 	public void block() {}
 
 	
@@ -106,7 +94,7 @@ public class ClusterMasterWatcher implements ClusterEventListener, MembershipLis
 	
 	//ClusterEventListener interface
 	public void joinedCluster() {
-		log.info( "This node ({}) has JOINED the cluster.", getLocalAddress() );
+		log.info( "This node ({}) has JOINED the cluster.", address );
 	}
 
 	
@@ -116,7 +104,7 @@ public class ClusterMasterWatcher implements ClusterEventListener, MembershipLis
 
 	
 	public void leftCluster() {
-		log.info( "This node ({}) has LEFT the cluster.", getLocalAddress() );
+		log.info( "This node ({}) has LEFT the cluster.", address );
 	}
 
 	
@@ -126,6 +114,6 @@ public class ClusterMasterWatcher implements ClusterEventListener, MembershipLis
 
 	
 	public void markedAsSeniorClusterMember() {
-		log.info( "This node ({}) has been marked as MASTER.", getLocalAddress() );
+		log.info( "This node ({}) has been marked as MASTER.", address );
 	}
 }
