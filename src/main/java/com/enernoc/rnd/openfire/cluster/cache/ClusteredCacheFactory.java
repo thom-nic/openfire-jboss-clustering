@@ -82,21 +82,6 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 				} catch (IOException ex) {}
 			}
 			
-			//Convert existing caches
-			for(Cache cacheWrapper : org.jivesoftware.util.cache.CacheFactory.getAllCaches()) {
-				if( ! (((CacheWrapper) cacheWrapper).getWrappedCache() instanceof JBossCache) ) {
-					JBossCache newCache = (JBossCache) this.createCache(cacheWrapper.getName());
-					for(Object k : cacheWrapper.keySet()) {
-						if( ! newCache.containsKey(k) ) {
-							newCache.put(k, cacheWrapper.get(k));
-						}
-					}
-					((CacheWrapper) cacheWrapper).setWrappedCache(newCache);
-				}
-			}
-			
-			
-			
 			String clusterConfig = JiveGlobals.getProperty( JBossClusterPlugin.CLUSTER_JGROUPS_CONFIG_PROPERTY );
 			URL config = clusterConfig != null ? getClass().getResource( clusterConfig ) : 
 				getClass().getResource("/udp.xml");
@@ -126,6 +111,11 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 			
         	masterWatcher.enable();
 			ExternalizableUtil.getInstance().setStrategy( new ExternalUtil() );
+			//setup the caches to use the clusteredcache factory
+			ClusterManager.fireJoinedCluster(false);
+			if(isSeniorClusterMember()) {
+				ClusterManager.fireMarkedAsSeniorClusterMember();
+			}
 			
 			log.info( "Cache factory started." );
 			log.info( "Plugin initialized." );
@@ -147,20 +137,7 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 			log.error("Error closing channel {}", e.getMessage());
 		}
 		
-		//Convert caches back to local caches
-		try {
-			CacheFactoryStrategy cfs = (CacheFactoryStrategy) Class.forName(org.jivesoftware.util.cache.CacheFactory.LOCAL_CACHE_PROPERTY_NAME).newInstance();
-			for(Cache cacheWrapper : org.jivesoftware.util.cache.CacheFactory.getAllCaches()) {
-				if( (((CacheWrapper) cacheWrapper).getWrappedCache() instanceof JBossCache) ) {
-					org.jivesoftware.util.cache.Cache newCache = cfs.createCache(cacheWrapper.getName());
-					newCache.putAll(((CacheWrapper) cacheWrapper).getWrappedCache());
-					((CacheWrapper) cacheWrapper).setWrappedCache(newCache);
-				}
-			}
-		} catch (Exception e) {
-			log.error("Error converting caches from cluster caches to local caches. Restarting server" , e);
-			XMPPServer.getInstance().restart();
-		}
+		ClusterManager.fireLeftCluster();
 		
 		masterWatcher = null;
 		channel = null;
