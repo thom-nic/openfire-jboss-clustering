@@ -50,7 +50,8 @@ public class JBossCache<K,V> implements org.jivesoftware.util.cache.Cache<K,V> {
 	}
 	
 	public Lock getLock( Object key ) {
-		return new JBossCacheLock( this.cache, getKey( key ) );
+		//return new JBossCacheLock( this.cache, getKey( key ) );
+		return new JBossNOCacheLock();
 	}
 	
 	

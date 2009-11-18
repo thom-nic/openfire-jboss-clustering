@@ -104,6 +104,7 @@ public class ClusterMasterWatcher implements ClusterEventListener, MembershipLis
 
 	
 	public void leftCluster() {
+		ClusterManager.fireLeftCluster();
 		log.info( "This node ({}) has LEFT the cluster.", address );
 	}
 
