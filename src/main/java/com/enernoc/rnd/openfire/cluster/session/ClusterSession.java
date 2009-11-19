@@ -18,8 +18,9 @@ import org.xmpp.packet.JID;
 import org.xmpp.packet.Packet;
 
 import com.enernoc.rnd.openfire.cluster.ClusterException;
-import com.enernoc.rnd.openfire.cluster.task.CloseSessionTask;
+import com.enernoc.rnd.openfire.cluster.session.task.RemoteSessionTask;
 import com.enernoc.rnd.openfire.cluster.task.ProcessPacketTask;
+
 
 /**
  * Session proxy for use across clusters
@@ -30,78 +31,69 @@ public abstract class ClusterSession implements Session, Externalizable {
 	protected final Logger log = LoggerFactory.getLogger( getClass() ); 
 	long refreshInterval = 20000;
 	
-	byte[] nodeId;
-	JID address = new JID();
-	long lastUpdated = 0;
-	Date created;
-	String hostAddr;
-	String hostName;
-	String serverName;
-	Date lastActive;
-	long clientPackets;
-	long serverPackets;
-	int status;
-	String streamID; 
-	boolean closed = false;
-	boolean secure = false;
+	protected byte[] nodeID;
+	protected JID address = new JID();
+	
+	//Cache content that never changes
+	protected StreamID streamID;
+	private Date created;
+	private String hostAddr;
+	private String hostName;
+	private String serverName; 
 	
 	public ClusterSession() {}
-	
 	public ClusterSession( JID jid, byte[] nodeID ) {
-		this.nodeId = nodeID;
+		this.nodeID = nodeID;
 		this.address = jid;
 	}
-
-	
-	public void process( Packet packet ) {
-		packet.setTo(this.getAddress());
-		CacheFactory.doClusterTask( new ProcessPacketTask( packet ), nodeId );
-	}
-
-	
-	public void deliverRawText( String txt ) {
-		throw new UnsupportedOperationException();
-	}
-
-	
-	public boolean validate() {
-		log.warn( "NO-OP : validate not implemented!" );
-		return true;
-	}
-
-	
-	public void close() {
-		CacheFactory.doClusterTask( new CloseSessionTask(address), nodeId );
-		this.closed = true; // TODO assume for now; maybe the task should return a value.
-	}
-	
-	/**
-	 * Subclasses should override this to indicate which task executes the 
-	 * correct method for retrieving their remote session type. i.e. a 
-	 * GetClientSessionTask would be returned by a ClusteredClientSession
-	 * implementation.  The task should return a Session implementation.
-	 * @return
-	 */
-	abstract ClusterTask getSessionUpdateTask();
 	
 	abstract void doCopy( Session s );
 	
 	abstract void doWriteExternal( ExternalizableUtil ext, ObjectOutput out ) throws IOException;
 	abstract void doReadExternal( ExternalizableUtil ext, ObjectInput in ) throws IOException, ClassNotFoundException;
 	
+	abstract RemoteSessionTask getRemoteSessionTask(RemoteSessionTask.Operation operation);
+    abstract ClusterTask getDeliverRawTextTask(String text);
+    abstract ClusterTask getProcessPacketTask(Packet packet);
+	
+    /**
+     * Invokes a task on the remote cluster member synchronously and returns the result of
+     * the remote operation.
+     *
+     * @param task        the ClusterTask object to be invoked on a given cluster member.
+     * @return result of remote operation.
+     * @throws IllegalStateException if requested node was not found or not running in a cluster.
+     */
+    protected Object doSynchronousClusterTask(ClusterTask task) {
+        return CacheFactory.doSynchronousClusterTask(task, nodeID);
+    }
+    
+    /**
+     * Invokes a task on the remote cluster member in an asynchronous fashion.
+     *
+     * @param task the task to be invoked on the specified cluster member.
+     * @throws IllegalStateException if requested node was not found or not running in a cluster. 
+     */
+    protected void doClusterTask(ClusterTask task) {
+        CacheFactory.doClusterTask(task, nodeID);
+    }
+    
 	/** 
 	 * Will update from the remote server if it hasn't updated in a given interval.
 	 * 
 	 */
+    @Deprecated
 	protected void checkUpdate() {
 		// only update from remote server every so often.
-		if ( ( System.currentTimeMillis() - lastUpdated ) > refreshInterval ) return;
+		/*
+    	if ( ( System.currentTimeMillis() - lastUpdated ) > refreshInterval ) return;
 		
 		ClusterTask task = getSessionUpdateTask();
-		Object o = CacheFactory.doSynchronousClusterTask( task, this.nodeId );
+		Object o = CacheFactory.doSynchronousClusterTask( task, this.nodeID );
 		this.copy( (Session) o );
 		
 		lastUpdated = System.currentTimeMillis();
+		*/
 	}
 	
 	/**
@@ -121,54 +113,10 @@ public abstract class ClusterSession implements Session, Externalizable {
 			throw new ClusterException( ex );
 		}
 		this.serverName = s.getServerName();
-		this.lastActive = s.getLastActiveDate();
-		this.clientPackets = s.getNumClientPackets();
-		this.serverPackets = s.getNumServerPackets();
-		this.status = s.getStatus();
-		this.closed = s.isClosed();
-		this.secure = s.isSecure();
-		this.streamID = s.getStreamID().getID();
+		this.streamID = s.getStreamID();
 		doCopy(s);
 	}
 	
-	
-	
-	public void writeExternal(ObjectOutput out) throws IOException {
-		ExternalizableUtil ext = ExternalizableUtil.getInstance();
-		this.address.writeExternal(out);
-		ext.writeByteArray(out, nodeId);
-		ext.writeLong(out, created.getTime());
-		ext.writeSafeUTF(out, hostAddr);
-		ext.writeSafeUTF(out, hostName);
-		ext.writeSafeUTF(out, serverName);
-		ext.writeLong(out, lastActive.getTime());
-		ext.writeLong(out, clientPackets);
-		ext.writeLong(out, serverPackets);
-		ext.writeInt(out, status);
-		ext.writeBoolean(out, closed);
-		ext.writeBoolean(out, secure);
-		ext.writeSafeUTF(out, streamID);
-		doWriteExternal( ext, out );
-	}
-	
-	
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-		ExternalizableUtil ext = ExternalizableUtil.getInstance();
-		this.address.readExternal(in);
-		this.nodeId = ext.readByteArray(in);
-		this.created = new Date( ext.readLong(in ) );
-		this.hostAddr = ext.readSafeUTF(in);
-		this.hostName = ext.readSafeUTF(in);
-		this.serverName = ext.readSafeUTF(in);
-		this.lastActive = new Date(ext.readLong(in));
-		this.clientPackets = ext.readLong(in);
-		this.serverPackets = ext.readLong(in);
-		this.status = ext.readInt(in);
-		this.closed = ext.readBoolean(in);
-		this.secure = ext.readBoolean(in);
-		this.streamID = ext.readSafeUTF(in);
-		doReadExternal( ext, in );
-	}
 	
 	
 	public JID getAddress() {
@@ -192,20 +140,20 @@ public abstract class ClusterSession implements Session, Externalizable {
 
 	
 	public Date getLastActiveDate() {
-		this.checkUpdate();
-		return this.lastActive;
+		ClusterTask task = getRemoteSessionTask(RemoteSessionTask.Operation.getLastActiveDate);
+        return (Date) doSynchronousClusterTask(task);
 	}
 
 	
 	public long getNumClientPackets() {
-		this.checkUpdate();
-		return this.clientPackets;
+		ClusterTask task = getRemoteSessionTask(RemoteSessionTask.Operation.getNumClientPackets);
+        return (Long) doSynchronousClusterTask(task);
 	}
 
 	
 	public long getNumServerPackets() {
-		this.checkUpdate();
-		return this.serverPackets;
+		ClusterTask task = getRemoteSessionTask(RemoteSessionTask.Operation.getNumServerPackets);
+        return (Long) doSynchronousClusterTask(task);
 	}
 
 	
@@ -213,30 +161,110 @@ public abstract class ClusterSession implements Session, Externalizable {
 		return this.serverName;
 	}
 
-	
+	/**
+     * Remote sessions are always authenticated. Otherwise, they won't be visibile to other
+     * cluster nodes. When the session is closed it will no longer be visible to other nodes
+     * so {@link #STATUS_CLOSED} is never returned. 
+     *
+     * @return the authenticated status.
+     */
 	public int getStatus() {
-		this.checkUpdate();
-		return this.status;
+		return STATUS_AUTHENTICATED;
 	}
 
 	
 	public StreamID getStreamID() {
-		return new StreamID() {
-			 public String getID() {
-				return streamID;
-			}
-		};
+		// Get it once and cache it since it never changes
+        if (streamID == null) {
+            ClusterTask task = getRemoteSessionTask(RemoteSessionTask.Operation.getStreamID);
+            String id = (String) doSynchronousClusterTask(task);
+            streamID = new BasicStreamID(id);
+        }
+        return streamID;
 	}
 
-	
 	public boolean isClosed() {
-		this.checkUpdate();
-		return this.closed;
+		ClusterTask task = getRemoteSessionTask(RemoteSessionTask.Operation.isClosed);
+		return (Boolean) doSynchronousClusterTask(task);
 	}
 
 	
 	public boolean isSecure() {
-		this.checkUpdate();
-		return this.secure;
+		ClusterTask task = getRemoteSessionTask(RemoteSessionTask.Operation.isSecure);
+        return (Boolean) doSynchronousClusterTask(task);
 	}
+	
+	
+
+	public void process( Packet packet ) {
+		packet.setTo(this.getAddress());
+		CacheFactory.doClusterTask( new ProcessPacketTask( packet ), nodeID );
+	}
+
+	
+	public void deliverRawText( String txt ) {
+		throw new UnsupportedOperationException();
+	}
+
+	
+	public boolean validate() {
+		log.warn( "NO-OP : validate not implemented!" );
+		return true;
+	}
+
+	
+	public void close() {
+		doSynchronousClusterTask(getRemoteSessionTask(RemoteSessionTask.Operation.close));
+	}
+	
+	public void writeExternal(ObjectOutput out) throws IOException {
+		ExternalizableUtil ext = ExternalizableUtil.getInstance();
+		this.address.writeExternal(out);
+		ext.writeByteArray(out, nodeID);
+		ext.writeLong(out, created.getTime());
+		ext.writeSafeUTF(out, hostAddr);
+		ext.writeSafeUTF(out, hostName);
+		ext.writeSafeUTF(out, serverName);
+		//FIXME need to write out the stream info or remove external implementation
+		ext.writeSafeUTF(out, streamID.getID());
+		doWriteExternal( ext, out );
+	}
+	
+	
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		ExternalizableUtil ext = ExternalizableUtil.getInstance();
+		this.address.readExternal(in);
+		this.nodeID = ext.readByteArray(in);
+		this.created = new Date( ext.readLong(in ) );
+		this.hostAddr = ext.readSafeUTF(in);
+		this.hostName = ext.readSafeUTF(in);
+		this.serverName = ext.readSafeUTF(in);
+		//FIXME need to write out the stream info or remove external implementation
+		this.streamID = new BasicStreamID(ext.readSafeUTF(in));
+		doReadExternal( ext, in );
+	}
+    
+	/**
+     * Simple implementation of the StreamID interface to hold the stream ID of
+     * the surrogated session.
+     */
+    protected static class BasicStreamID implements StreamID {
+        String id;
+
+        public BasicStreamID(String id) {
+            this.id = id;
+        }
+
+        public String getID() {
+            return id;
+        }
+
+        public String toString() {
+            return id;
+        }
+
+        public int hashCode() {
+            return id.hashCode();
+        }
+    }
 }

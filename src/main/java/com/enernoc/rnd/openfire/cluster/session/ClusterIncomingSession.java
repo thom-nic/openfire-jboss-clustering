@@ -10,8 +10,11 @@ import org.jivesoftware.openfire.session.IncomingServerSession;
 import org.jivesoftware.openfire.session.Session;
 import org.jivesoftware.util.cache.ClusterTask;
 import org.jivesoftware.util.cache.ExternalizableUtil;
+import org.xmpp.packet.Packet;
 
 import com.enernoc.rnd.openfire.cluster.session.task.GetIncomingSessionTask;
+import com.enernoc.rnd.openfire.cluster.session.task.RemoteSessionTask;
+import com.enernoc.rnd.openfire.cluster.session.task.RemoteSessionTask.Operation;
 
 public class ClusterIncomingSession extends ClusterSession implements
 		IncomingServerSession {
@@ -49,7 +52,6 @@ public class ClusterIncomingSession extends ClusterSession implements
 		ext.writeStrings( out, validDomains );
 	}
 
-	@Override
 	ClusterTask getSessionUpdateTask() {
 		return new GetIncomingSessionTask( this.streamID );
 	}
@@ -61,5 +63,23 @@ public class ClusterIncomingSession extends ClusterSession implements
 	public Collection<String> getValidatedDomains() {
 		super.checkUpdate();
 		return this.validDomains;
+	}
+
+	@Override
+	ClusterTask getDeliverRawTextTask(String text) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	ClusterTask getProcessPacketTask(Packet packet) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	RemoteSessionTask getRemoteSessionTask(Operation operation) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

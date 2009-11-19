@@ -14,6 +14,7 @@ import org.xmpp.packet.JID;
 
 import com.enernoc.rnd.openfire.cluster.session.ClusterSession;
 
+@Deprecated
 public abstract class GetSessionTask<S extends ClusterSession> implements ClusterTask {
 
 	protected static final Logger log = LoggerFactory.getLogger( GetSessionTask.class ); 

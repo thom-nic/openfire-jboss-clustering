@@ -7,6 +7,10 @@ import org.xmpp.packet.JID;
 
 import com.enernoc.rnd.openfire.cluster.session.ClusteredClientSession;
 
+@Deprecated
+/**
+ * @Deprecated use ClientSessionTask instead
+ */
 public class GetClientSessionTask extends GetSessionTask<ClusteredClientSession> {
 	
 	public GetClientSessionTask() {}

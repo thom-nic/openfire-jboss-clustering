@@ -9,13 +9,15 @@ import org.jivesoftware.openfire.session.Session;
 import org.jivesoftware.util.cache.ClusterTask;
 import org.jivesoftware.util.cache.ExternalizableUtil;
 import org.xmpp.packet.JID;
+import org.xmpp.packet.Packet;
 
 import com.enernoc.rnd.openfire.cluster.session.task.GetMultiplexerSessionTask;
+import com.enernoc.rnd.openfire.cluster.session.task.RemoteSessionTask;
+import com.enernoc.rnd.openfire.cluster.session.task.RemoteSessionTask.Operation;
 
 public class ClusterConnectionMultiplexerSession extends ClusterSession
 		implements ConnectionMultiplexerSession {
 
-	public ClusterConnectionMultiplexerSession() { super(); }
 	public ClusterConnectionMultiplexerSession( JID address, byte[] nodeID ) {
 		super(address, nodeID);
 	}
@@ -35,9 +37,26 @@ public class ClusterConnectionMultiplexerSession extends ClusterSession
 		/* no-op */
 	}
 
-	@Override
 	ClusterTask getSessionUpdateTask() {
 		// TODO Auto-generated method stub
 		return new GetMultiplexerSessionTask();
+	}
+
+	@Override
+	ClusterTask getDeliverRawTextTask(String text) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	ClusterTask getProcessPacketTask(Packet packet) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	RemoteSessionTask getRemoteSessionTask(Operation operation) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

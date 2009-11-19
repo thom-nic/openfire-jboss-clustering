@@ -11,8 +11,11 @@ import org.jivesoftware.openfire.session.Session;
 import org.jivesoftware.util.cache.ClusterTask;
 import org.jivesoftware.util.cache.ExternalizableUtil;
 import org.xmpp.packet.JID;
+import org.xmpp.packet.Packet;
 
 import com.enernoc.rnd.openfire.cluster.session.task.GetOutgoingSessionTask;
+import com.enernoc.rnd.openfire.cluster.session.task.RemoteSessionTask;
+import com.enernoc.rnd.openfire.cluster.session.task.RemoteSessionTask.Operation;
 
 public class ClusterOutgoingSession extends ClusterSession implements OutgoingServerSession {
 
@@ -20,7 +23,6 @@ public class ClusterOutgoingSession extends ClusterSession implements OutgoingSe
 	protected Collection<String> hostnames = new ArrayList<String>();
 	protected boolean usingDialback;
 	
-	public ClusterOutgoingSession() { super(); }
 	public ClusterOutgoingSession( JID jid, byte[] nodeID ) { super( jid, nodeID ); }
 	
 	@Override
@@ -47,7 +49,6 @@ public class ClusterOutgoingSession extends ClusterSession implements OutgoingSe
 		out.writeBoolean(usingDialback);
 	}
 
-	@Override
 	ClusterTask getSessionUpdateTask() {
 		return new GetOutgoingSessionTask(this.address);
 	}
@@ -85,5 +86,20 @@ public class ClusterOutgoingSession extends ClusterSession implements OutgoingSe
 	
 	public boolean isUsingServerDialback() {
 		return this.usingDialback;
+	}
+	@Override
+	ClusterTask getDeliverRawTextTask(String text) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	@Override
+	ClusterTask getProcessPacketTask(Packet packet) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	@Override
+	RemoteSessionTask getRemoteSessionTask(Operation operation) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

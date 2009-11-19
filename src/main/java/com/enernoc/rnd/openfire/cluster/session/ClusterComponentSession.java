@@ -15,11 +15,13 @@ import org.xmpp.component.ComponentManager;
 import org.xmpp.packet.JID;
 import org.xmpp.packet.Packet;
 
+import com.enernoc.rnd.openfire.cluster.session.task.RemoteSessionTask;
+import com.enernoc.rnd.openfire.cluster.session.task.RemoteSessionTask.Operation;
+
 public class ClusterComponentSession extends ClusterSession implements ComponentSession {
 
 	ClusterExternalComponent component;
 	
-	public ClusterComponentSession() { super(); }
 	public ClusterComponentSession( JID jid, byte[] nodeID ) { super( jid, nodeID ); }
 	
 	@Override
@@ -42,7 +44,7 @@ public class ClusterComponentSession extends ClusterSession implements Component
 
 	}
 
-	@Override
+
 	ClusterTask getSessionUpdateTask() {
 		// TODO Auto-generated method stub
 		return null;
@@ -124,5 +126,21 @@ public class ClusterComponentSession extends ClusterSession implements Component
 			// TODO Auto-generated method stub
 			
 		}
+	}
+
+	@Override
+	ClusterTask getDeliverRawTextTask(String text) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	@Override
+	ClusterTask getProcessPacketTask(Packet packet) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	@Override
+	RemoteSessionTask getRemoteSessionTask(Operation operation) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
