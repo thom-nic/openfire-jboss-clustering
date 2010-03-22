@@ -84,7 +84,7 @@ public class ClusteredCacheFactory implements CacheFactoryStrategy {
 			
 			String clusterConfig = JiveGlobals.getProperty( JBossClusterPlugin.CLUSTER_JGROUPS_CONFIG_PROPERTY );
 			URL config = clusterConfig != null ? getClass().getResource( clusterConfig ) : 
-				getClass().getResource("/udp.xml");
+				getClass().getResource("/tcp.xml");
 			
 			//Channel Setup
 			JChannelFactory channelFactory = new JChannelFactory( config );

@@ -19,13 +19,12 @@ import com.enernoc.rnd.openfire.cluster.session.task.RemoteSessionTask.Operation
 public class ClusterIncomingSession extends ClusterSession implements
 		IncomingServerSession {
 
-	String streamID;
 	String localDomain;
 	Collection<String> validDomains = new ArrayList<String>();
 	
 	public ClusterIncomingSession( String streamID, byte[] nodeID ) {
 		super( null, nodeID );
-		this.streamID = streamID;
+		this.streamID = new BasicStreamID(streamID);
 	}
 	
 	@Override
@@ -39,7 +38,7 @@ public class ClusterIncomingSession extends ClusterSession implements
 	@Override
 	void doReadExternal(ExternalizableUtil ext, ObjectInput in)
 			throws IOException, ClassNotFoundException {
-		this.streamID = ext.readSafeUTF(in);
+		this.streamID = new BasicStreamID(ext.readSafeUTF(in));
 		this.localDomain = ext.readSafeUTF(in);
 		ext.readStrings(in, this.validDomains);
 	}
@@ -47,13 +46,13 @@ public class ClusterIncomingSession extends ClusterSession implements
 	@Override
 	void doWriteExternal(ExternalizableUtil ext, ObjectOutput out)
 			throws IOException {
-		ext.writeSafeUTF( out, streamID );
+		ext.writeSafeUTF( out, streamID.getID() );
 		ext.writeSafeUTF( out, localDomain );
 		ext.writeStrings( out, validDomains );
 	}
 
 	ClusterTask getSessionUpdateTask() {
-		return new GetIncomingSessionTask( this.streamID );
+		return new GetIncomingSessionTask( this.streamID.getID() );
 	}
 
 	public String getLocalDomain() {

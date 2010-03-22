@@ -22,6 +22,8 @@ public class ClusterComponentSession extends ClusterSession implements Component
 
 	ClusterExternalComponent component;
 	
+	public ClusterComponentSession() {}
+	
 	public ClusterComponentSession( JID jid, byte[] nodeID ) { super( jid, nodeID ); }
 	
 	@Override

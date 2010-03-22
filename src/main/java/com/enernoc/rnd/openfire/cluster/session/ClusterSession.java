@@ -28,8 +28,8 @@ import com.enernoc.rnd.openfire.cluster.task.ProcessPacketTask;
  */
 public abstract class ClusterSession implements Session, Externalizable {
 
-	protected final Logger log = LoggerFactory.getLogger( getClass() ); 
-	long refreshInterval = 20000;
+	protected static final Logger log = LoggerFactory.getLogger( ClusterSession.class ); 
+	private static final long refreshInterval = 20000;
 	
 	protected byte[] nodeID;
 	protected JID address = new JID();

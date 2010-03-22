@@ -7,11 +7,13 @@ import org.jivesoftware.openfire.session.RemoteSessionLocator;
 import org.jivesoftware.util.cache.CacheFactory;
 import org.xmpp.packet.JID;
 
+import com.enernoc.rnd.openfire.cluster.session.task.ClientSessionTask;
 import com.enernoc.rnd.openfire.cluster.session.task.GetClientSessionTask;
 import com.enernoc.rnd.openfire.cluster.session.task.GetComponentSessionTask;
 import com.enernoc.rnd.openfire.cluster.session.task.GetIncomingSessionTask;
 import com.enernoc.rnd.openfire.cluster.session.task.GetMultiplexerSessionTask;
 import com.enernoc.rnd.openfire.cluster.session.task.GetOutgoingSessionTask;
+import com.enernoc.rnd.openfire.cluster.session.task.RemoteSessionTask.Operation;
 
 /**
  * Executed to get session proxies for sessions located on other nodes in this 
@@ -21,8 +23,7 @@ import com.enernoc.rnd.openfire.cluster.session.task.GetOutgoingSessionTask;
 public class ClusteredSessionLocator implements RemoteSessionLocator {
 
 	public ClusteredClientSession getClientSession( byte[] nodeID, JID address ) {
-		return (ClusteredClientSession) CacheFactory.doSynchronousClusterTask( 
-				new GetClientSessionTask(address), nodeID );
+		return new ClusteredClientSession(address, nodeID);
 	}
 
 	public ClusterComponentSession getComponentSession(byte[] nodeID, JID address) {
